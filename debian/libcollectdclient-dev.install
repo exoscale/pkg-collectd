@@ -2,6 +2,6 @@ usr/include/collectd/client.h usr/include/collectd
 usr/include/collectd/lcc_features.h usr/include/collectd
 usr/include/collectd/network.h usr/include/collectd
 usr/include/collectd/network_buffer.h usr/include/collectd
-usr/lib/pkgconfig/libcollectdclient.pc
-usr/lib/libcollectdclient.so
+usr/lib/*/pkgconfig/libcollectdclient.pc
+usr/lib/*/libcollectdclient.so
 
