@@ -29,8 +29,8 @@ Vcs-Browser: http://git.tokkee.org/?p=pkg-collectd.git
 
 Package: collectd-core
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Suggests: ${shlibs:Suggests}, default-jre-headless, perl, rrdtool
+Depends: ${shlibs:Depends}, ${misc:Depends}, default-jre-headless
+Suggests: ${shlibs:Suggests}, perl, rrdtool
 Replaces: collectd (<< 4.8.2-1~)
 Description: statistics collection and monitoring daemon (core system)
  collectd is a small daemon which collects system information periodically and
