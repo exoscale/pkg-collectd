@@ -158,20 +158,8 @@ confflags += --enable-write_riemann # Riemann output plugin
 # confflags += --enable-zookeeper # Zookeeper statistics
 
 # Java stuff
-JAVA_ARCHDIR = $(shell /usr/share/javahelper/java-arch.sh $(DEB_BUILD_ARCH))
-ifeq (,$(JAVA_ARCHDIR))
-        JAVA_ARCHDIR = $(DEB_BUILD_ARCH)
-endif
-JAVA_HOME = /usr/lib/jvm/default-java
-JAVA_LIBDIR = $(JAVA_HOME)/jre/lib/$(JAVA_ARCHDIR)/server
-
-JAVAC = $(JAVA_HOME)/bin/javac
-JAR = $(JAVA_HOME)/bin/jar
-JAVA_CPPFLAGS = -I$(JAVA_HOME)/include
-JAVA_LDFLAGS = -L$(JAVA_LIBDIR) -Wl,-rpath -Wl,$(JAVA_LIBDIR)
 confflags += --enable-java # Embed the Java Virtual Machine
-confflags += JAVAC="$(JAVAC)" JAR="$(JAR)" JAVA_CPPFLAGS="$(JAVA_CPPFLAGS)" \
-	JAVA_LDFLAGS="$(JAVA_LDFLAGS)"
+confflags += --with-java=/usr/lib/jvm/default-java
 
 %:
 	dh $@
