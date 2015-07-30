@@ -1,3 +1,10 @@
+collectd (5.5.0-0~precise0+exo3) precise; urgency=medium
+
+  * Add a patch to avoid memory-leak in SMART plugin.
+     + 0001-Update-smart.c.patch
+
+ -- Vincent Bernat <bernat@debian.org>  Thu, 30 Jul 2015 14:59:07 +0200
+
 collectd (5.5.0-0~precise0+exo2) precise; urgency=medium
 
   * Use `--with-java' to let collectd handle Java location.

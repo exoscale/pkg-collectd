@@ -1,0 +1,27 @@
+From a49ae41e44268b9972472e8355070c1299d18d5e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Florian=20Sch=C3=BCller?=
+ <schuellerf@users.noreply.github.com>
+Date: Wed, 10 Jun 2015 15:29:31 +0200
+Subject: [PATCH] Update smart.c
+
+Are you sure this doesn't memory-leak?
+(I didn't have time to run valgrind but is it possible that this command is missing?)
+---
+ src/smart.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/smart.c b/src/smart.c
+index 3b113bd33a2d..a9c563eab96a 100644
+--- a/src/smart.c
++++ b/src/smart.c
+@@ -253,6 +253,7 @@ static int smart_read (void)
+ 
+     /* Query status with libatasmart */
+     smart_handle_disk (devpath);
++    udev_device_unref(dev);
+   }
+ 
+   udev_enumerate_unref (enumerate);
+-- 
+2.5.0
+
