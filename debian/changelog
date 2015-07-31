@@ -1,3 +1,9 @@
+collectd (5.5.0-0~precise0+exo4) precise; urgency=medium
+
+  * Enable log_logstash plugin.
+
+ -- Vincent Bernat <bernat@debian.org>  Fri, 31 Jul 2015 11:11:14 +0200
+
 collectd (5.5.0-0~precise0+exo3) precise; urgency=medium
 
   * Add a patch to avoid memory-leak in SMART plugin.
