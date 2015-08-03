@@ -178,3 +178,6 @@ override_dh_auto_clean:
 
 override_dh_installinit:
 	dh_installinit -pcollectd-core --name=collectd -- defaults 95
+
+override_dh_strip:
+	dh_strip --dbg-package=collectd-dbg
