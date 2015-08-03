@@ -1,2 +1,3 @@
 collection_conf_path.patch
 0001-Update-smart.c.patch
+0001-logstash-initialize-conf-struct-to-0.patch

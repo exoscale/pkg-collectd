@@ -1,0 +1,38 @@
+From 31196822383cce5156a511fb131ec7ad524e9a76 Mon Sep 17 00:00:00 2001
+From: Vincent Bernat <vincent@bernat.im>
+Date: Mon, 3 Aug 2015 10:06:30 +0200
+Subject: [PATCH] logstash: initialize conf struct to 0
+
+With YAJL 1 (at least on Ubuntu Precise), if `conf.indentString` is not
+initialized correctly, we would get a segfault even when `conf.beautify`
+is set to 0. We avoid this case by initializing the whole structure to
+0. `conf.beautify = 0` is kept for explicitness.
+---
+ src/log_logstash.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/log_logstash.c b/src/log_logstash.c
+index 61e7f4848e3a..2883e6c97d28 100644
+--- a/src/log_logstash.c
++++ b/src/log_logstash.c
+@@ -208,7 +208,7 @@ static void log_logstash_log (int severity, const char *msg,
+ {
+ 	yajl_gen g;
+ #if !defined(HAVE_YAJL_V2)
+-	yajl_gen_config conf;
++	yajl_gen_config conf = {};
+ 
+ 	conf.beautify = 0;
+ #endif
+@@ -252,7 +252,7 @@ static int log_logstash_notification (const notification_t *n,
+ #if HAVE_YAJL_V2
+ 	g = yajl_gen_alloc(NULL);
+ #else
+-	yajl_gen_config conf;
++	yajl_gen_config conf = {};
+ 
+ 	conf.beautify = 0;
+ 	g = yajl_gen_alloc(&conf, NULL);
+-- 
+2.5.0
+
