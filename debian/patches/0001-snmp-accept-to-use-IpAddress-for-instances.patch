@@ -1,0 +1,46 @@
+From 72e1655e8baed2331696115aad9704fc08b71897 Mon Sep 17 00:00:00 2001
+From: Vincent Bernat <vincent@bernat.im>
+Date: Wed, 2 Dec 2015 10:55:39 +0100
+Subject: [PATCH] snmp: accept to use IpAddress for instances
+
+Some interesting MIB are indexed with an IP address (for example,
+BGP4-MIB). Make collectd able to use those indexes as instances. Format
+the IP as string. IPv6 are usually encoded as Octet String, so, they
+should be already supported.
+
+Signed-off-by: Vincent Bernat <vincent@bernat.im>
+---
+ src/snmp.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/src/snmp.c b/src/snmp.c
+index cb2bb36d7bf7..783dfac7190a 100644
+--- a/src/snmp.c
++++ b/src/snmp.c
+@@ -1098,6 +1098,14 @@ static int csnmp_strvbcopy (char *dst, /* {{{ */
+     src = (char *) vb->val.string;
+   else if (vb->type == ASN_BIT_STR)
+     src = (char *) vb->val.bitstring;
++  else if (vb->type == ASN_IPADDRESS)
++  {
++    return snprintf(dst, dst_size, "%d.%d.%d.%d",
++             (uint8_t)vb->val.string[0],
++             (uint8_t)vb->val.string[1],
++             (uint8_t)vb->val.string[2],
++             (uint8_t)vb->val.string[3]);
++  }
+   else
+   {
+     dst[0] = 0;
+@@ -1159,7 +1167,7 @@ static int csnmp_instance_list_add (csnmp_list_instances_t **head,
+   }
+ 
+   /* Get instance name */
+-  if ((vb->type == ASN_OCTET_STR) || (vb->type == ASN_BIT_STR))
++  if ((vb->type == ASN_OCTET_STR) || (vb->type == ASN_BIT_STR) || (vb->type == ASN_IPADDRESS))
+   {
+     char *ptr;
+ 
+-- 
+2.6.2
+
