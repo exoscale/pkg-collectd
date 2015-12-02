@@ -1,4 +1,4 @@
-collectd (5.5.0-0~precise0+exo7) UNRELEASED; urgency=medium
+collectd (5.5.0-0~precise0+exo7) precise; urgency=medium
 
   * Add a patch to walk MIB using IpAddress as index.
      + 0001-snmp-accept-to-use-IpAddress-for-instances.patch
