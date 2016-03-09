@@ -1,3 +1,9 @@
+collectd (5.5.0-0~trusty0+exo1) trusty; urgency=medium
+
+  * Forward-port to Trusty.
+
+ -- Vincent Bernat <bernat@debian.org>  Wed, 09 Mar 2016 16:53:44 +0100
+
 collectd (5.5.0-0~precise0+exo7) precise; urgency=medium
 
   * Add a patch to walk MIB using IpAddress as index.
