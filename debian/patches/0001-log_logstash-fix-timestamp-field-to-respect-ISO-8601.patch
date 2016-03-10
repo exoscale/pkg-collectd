@@ -1,0 +1,26 @@
+From a46da0050dfe27715b9bc504ed2988c466de6d32 Mon Sep 17 00:00:00 2001
+From: Marc Fournier <marc.fournier@camptocamp.com>
+Date: Fri, 11 Sep 2015 23:59:10 +0200
+Subject: [PATCH] log_logstash: fix timestamp field to respect ISO 8601 format
+
+Fixes #1132
+---
+ src/log_logstash.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/log_logstash.c b/src/log_logstash.c
+index 2883e6c97d28..2d5f62038028 100644
+--- a/src/log_logstash.c
++++ b/src/log_logstash.c
+@@ -147,7 +147,7 @@ static void log_logstash_print (yajl_gen g, int severity,
+ 	 * format time as a UTC ISO 8601 compliant string
+ 	 */
+ 	strftime (timestamp_str, sizeof (timestamp_str),
+-		  "%Y-%m-%d %H:%M:%SZ", &timestamp_tm);
++		  "%Y-%m-%dT%H:%M:%SZ", &timestamp_tm);
+ 	timestamp_str[sizeof (timestamp_str) - 1] = '\0';
+ 
+ 	if (yajl_gen_string(g, (u_char *)timestamp_str,
+-- 
+2.7.0
+

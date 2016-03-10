@@ -1,3 +1,10 @@
+collectd (5.5.0-0~precise0+exo8) precise; urgency=medium
+
+  * Add a patch to fix timestamp format in JSON logs.
+     + 0001-log_logstash-fix-timestamp-field-to-respect-ISO-8601.patch
+
+ -- Vincent Bernat <bernat@debian.org>  Thu, 10 Mar 2016 15:54:30 +0100
+
 collectd (5.5.0-0~precise0+exo7) precise; urgency=medium
 
   * Add a patch to walk MIB using IpAddress as index.
