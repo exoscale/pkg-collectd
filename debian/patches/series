@@ -2,3 +2,4 @@ collection_conf_path.patch
 0001-Update-smart.c.patch
 0001-logstash-initialize-conf-struct-to-0.patch
 0001-snmp-accept-to-use-IpAddress-for-instances.patch
+0001-log_logstash-fix-timestamp-field-to-respect-ISO-8601.patch
