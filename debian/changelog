@@ -1,3 +1,9 @@
+collectd (5.5.0-0~precise0+exo9) precise; urgency=medium
+
+  * Enable "md" plugin.
+
+ -- Vincent Bernat <bernat@debian.org>  Tue, 15 Mar 2016 09:35:08 +0100
+
 collectd (5.5.0-0~precise0+exo8) precise; urgency=medium
 
   * Add a patch to fix timestamp format in JSON logs.
