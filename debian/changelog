@@ -1,3 +1,9 @@
+collectd (5.5.0-0~precise0+exo10) precise; urgency=medium
+
+  * Add riemann TLS support
+
+ -- Pierre-Yves Ritschard <pyr@spootnik.org>  Tue, 12 Apr 2016 09:42:10 +0100
+
 collectd (5.5.0-0~precise0+exo9) precise; urgency=medium
 
   * Enable "md" plugin.
