@@ -1,3 +1,13 @@
+collectd (5.5.1-0~precise0+exo1) precise; urgency=medium
+
+  * New upstream release.
+     + 0001-Update-smart.c.patch removed
+     + 0001-logstash-initialize-conf-struct-to-0.patch removed
+     + 0001-log_logstash-fix-timestamp-field-to-respect-ISO-8601.patch removed
+     + Refresh other patches.
+
+ -- Vincent Bernat <bernat@debian.org>  Tue, 12 Apr 2016 09:49:10 +0200
+
 collectd (5.5.0-0~precise0+exo10) precise; urgency=medium
 
   * Add riemann TLS support

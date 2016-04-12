@@ -13,11 +13,11 @@ Signed-off-by: Vincent Bernat <vincent@bernat.im>
  src/snmp.c | 10 +++++++++-
  1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/src/snmp.c b/src/snmp.c
-index cb2bb36d7bf7..783dfac7190a 100644
---- a/src/snmp.c
-+++ b/src/snmp.c
-@@ -1098,6 +1098,14 @@ static int csnmp_strvbcopy (char *dst, /* {{{ */
+Index: collectd-5.5.1/src/snmp.c
+===================================================================
+--- collectd-5.5.1.orig/src/snmp.c
++++ collectd-5.5.1/src/snmp.c
+@@ -1099,6 +1099,14 @@ static int csnmp_strvbcopy (char *dst, /
      src = (char *) vb->val.string;
    else if (vb->type == ASN_BIT_STR)
      src = (char *) vb->val.bitstring;
@@ -32,7 +32,7 @@ index cb2bb36d7bf7..783dfac7190a 100644
    else
    {
      dst[0] = 0;
-@@ -1159,7 +1167,7 @@ static int csnmp_instance_list_add (csnmp_list_instances_t **head,
+@@ -1160,7 +1168,7 @@ static int csnmp_instance_list_add (csnm
    }
  
    /* Get instance name */
@@ -41,6 +41,3 @@ index cb2bb36d7bf7..783dfac7190a 100644
    {
      char *ptr;
  
--- 
-2.6.2
-
