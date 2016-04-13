@@ -1,3 +1,4 @@
 collection_conf_path.patch
 0001-snmp-accept-to-use-IpAddress-for-instances.patch
 986.patch
+986-amend.patch
