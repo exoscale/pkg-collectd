@@ -1,4 +1,4 @@
-collectd (5.5.1-0~precise0+exo1) precise; urgency=medium
+collectd (5.5.1-0~precise0+exo2) precise; urgency=medium
 
   * New upstream release.
      + 0001-Update-smart.c.patch removed
