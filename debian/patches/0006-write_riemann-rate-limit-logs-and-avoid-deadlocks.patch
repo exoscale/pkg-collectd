@@ -1,39 +1,12 @@
-From 7201bb06faac7d7573399406f8bbfe1401111414 Mon Sep 17 00:00:00 2001
+From 6db97d401b36ffaf0a352edbbbe2941c9e87645d Mon Sep 17 00:00:00 2001
 From: Pierre-Yves Ritschard <pyr@spootnik.org>
-Date: Wed, 13 Apr 2016 22:17:57 +0200
-Subject: [PATCH 1/4] write_riemann: avoid deadlock on connection failures
-
----
- src/write_riemann.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/src/write_riemann.c b/src/write_riemann.c
-index 2b68e88..63e8918 100644
---- a/src/write_riemann.c
-+++ b/src/write_riemann.c
-@@ -135,8 +135,10 @@ static int wrr_send(struct riemann_host *host, riemann_message_t *msg) /* {{{ */
- 	pthread_mutex_lock (&host->lock);
- 
- 	status = wrr_connect(host);
--	if (status != 0)
-+	if (status != 0) {
-+        pthread_mutex_unlock(&host->lock);
- 		return status;
-+    }
- 
- 	status = riemann_client_send_message(host->client, msg);
- 	if (status != 0) {
-
-From 2742a564d13f713c8e339749fda25222623c4e5e Mon Sep 17 00:00:00 2001
-From: Pierre-Yves Ritschard <pyr@spootnik.org>
-Date: Wed, 13 Apr 2016 22:59:51 +0200
-Subject: [PATCH 2/4] write_riemann: use the complain mechanism to rate limit
- connection failure logs
+Date: Wed, 13 Apr 2016 23:32:42 +0200
+Subject: [PATCH 6/6] write_riemann: rate limit logs and avoid deadlocks
 
 ---
  src/daemon/utils_complain.c |  1 -
- src/write_riemann.c         | 38 +++++++++++++++++++++++++-------------
- 2 files changed, 25 insertions(+), 14 deletions(-)
+ src/write_riemann.c         | 41 +++++++++++++++++++++++++++--------------
+ 2 files changed, 27 insertions(+), 15 deletions(-)
 
 diff --git a/src/daemon/utils_complain.c b/src/daemon/utils_complain.c
 index 6193614..1cf6c3a 100644
@@ -45,10 +18,10 @@ index 6193614..1cf6c3a 100644
  /* vim: set sw=4 ts=4 tw=78 noexpandtab : */
 -
 diff --git a/src/write_riemann.c b/src/write_riemann.c
-index 63e8918..fd82650 100644
+index ea69222..26e232d 100644
 --- a/src/write_riemann.c
 +++ b/src/write_riemann.c
-@@ -37,6 +37,7 @@
+@@ -39,6 +39,7 @@
  #include "common.h"
  #include "configfile.h"
  #include "utils_cache.h"
@@ -56,16 +29,15 @@ index 63e8918..fd82650 100644
  #include "write_riemann_threshold.h"
  
  #define RIEMANN_HOST		"localhost"
-@@ -55,6 +56,8 @@ struct riemann_host {
- 	_Bool			 always_append_ds;
- 	char			*node;
- 	int			 port;
+@@ -47,6 +48,7 @@
+ #define RIEMANN_BATCH_MAX      8192
+ 
+ struct riemann_host {
 +    c_complain_t init_complaint;
-+    c_complain_t init_send_complaint;
- 	riemann_client_type_t	 client_type;
- 	riemann_client_t	*client;
- 	double			 ttl_factor;
-@@ -93,21 +96,25 @@ static int wrr_connect(struct riemann_host *host) /* {{{ */
+ 	char			*name;
+ 	char			*event_service_prefix;
+ 	pthread_mutex_t	 lock;
+@@ -95,21 +97,25 @@ static int wrr_connect(struct riemann_host *host) /* {{{ */
  					     RIEMANN_CLIENT_OPTION_TLS_KEY_FILE, host->tls_key_file,
  					     RIEMANN_CLIENT_OPTION_NONE);
  	if (host->client == NULL) {
@@ -97,7 +69,19 @@ index 63e8918..fd82650 100644
  
  	return 0;
  } /* }}} int wrr_connect */
-@@ -491,8 +498,11 @@ static int wrr_batch_flush(cdtime_t timeout,
+@@ -137,8 +143,10 @@ static int wrr_send(struct riemann_host *host, riemann_message_t *msg) /* {{{ */
+ 	pthread_mutex_lock (&host->lock);
+ 
+ 	status = wrr_connect(host);
+-	if (status != 0)
++	if (status != 0) {
++        pthread_mutex_unlock(&host->lock);
+ 		return status;
++    }
+ 
+ 	status = riemann_client_send_message(host->client, msg);
+ 	if (status != 0) {
+@@ -491,8 +499,11 @@ static int wrr_batch_flush(cdtime_t timeout,
  	pthread_mutex_lock(&host->lock);
  	status = wrr_batch_flush_nolock(timeout, host);
  	if (status != 0)
@@ -111,7 +95,7 @@ index 63e8918..fd82650 100644
  
  	pthread_mutex_unlock(&host->lock);
  	return status;
-@@ -561,8 +571,12 @@ static int wrr_notification(const notification_t *n, user_data_t *ud) /* {{{ */
+@@ -561,8 +572,12 @@ static int wrr_notification(const notification_t *n, user_data_t *ud) /* {{{ */
  
  	status = wrr_send(host, msg);
  	if (status != 0)
@@ -126,7 +110,7 @@ index 63e8918..fd82650 100644
  
  	riemann_message_free(msg);
  	return (status);
-@@ -593,9 +607,6 @@ static int wrr_write(const data_set_t *ds, /* {{{ */
+@@ -593,9 +608,6 @@ static int wrr_write(const data_set_t *ds, /* {{{ */
        return (-1);
  
      status = wrr_send(host, msg);
@@ -136,7 +120,7 @@ index 63e8918..fd82650 100644
  
      riemann_message_free(msg);
    }
-@@ -638,6 +649,7 @@ static int wrr_config_node(oconfig_item_t *ci) /* {{{ */
+@@ -638,6 +650,7 @@ static int wrr_config_node(oconfig_item_t *ci) /* {{{ */
      return ENOMEM;
    }
    pthread_mutex_init(&host->lock, NULL);
@@ -144,56 +128,6 @@ index 63e8918..fd82650 100644
    host->reference_count = 1;
    host->node = NULL;
    host->port = 0;
+-- 
+2.8.0
 
-From faa4371fb8e4f0d823859301539bd1ed914c1189 Mon Sep 17 00:00:00 2001
-From: Pierre-Yves Ritschard <pyr@spootnik.org>
-Date: Wed, 13 Apr 2016 23:15:29 +0200
-Subject: [PATCH 3/4] write_riemann: use a single complaint field for send
- errors
-
----
- src/write_riemann.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/src/write_riemann.c b/src/write_riemann.c
-index fd82650..1cd1a9a 100644
---- a/src/write_riemann.c
-+++ b/src/write_riemann.c
-@@ -57,7 +57,6 @@ struct riemann_host {
- 	char			*node;
- 	int			 port;
-     c_complain_t init_complaint;
--    c_complain_t init_send_complaint;
- 	riemann_client_type_t	 client_type;
- 	riemann_client_t	*client;
- 	double			 ttl_factor;
-
-From d41585ea72b7e2768c4dd507016ffd0cc3a6e130 Mon Sep 17 00:00:00 2001
-From: Pierre-Yves Ritschard <pyr@spootnik.org>
-Date: Wed, 13 Apr 2016 23:22:33 +0200
-Subject: [PATCH 4/4] write_riemann: reorder host struct
-
----
- src/write_riemann.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/write_riemann.c b/src/write_riemann.c
-index 1cd1a9a..ff7e19f 100644
---- a/src/write_riemann.c
-+++ b/src/write_riemann.c
-@@ -46,6 +46,7 @@
- #define RIEMANN_BATCH_MAX      8192
- 
- struct riemann_host {
-+    c_complain_t init_complaint;
- 	char			*name;
- 	char			*event_service_prefix;
- 	pthread_mutex_t	 lock;
-@@ -56,7 +57,6 @@ struct riemann_host {
- 	_Bool			 always_append_ds;
- 	char			*node;
- 	int			 port;
--    c_complain_t init_complaint;
- 	riemann_client_type_t	 client_type;
- 	riemann_client_t	*client;
- 	double			 ttl_factor;

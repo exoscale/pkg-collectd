@@ -1,7 +1,24 @@
-Rebased version of https://github.com/collectd/collectd/pull/986
+From 3a20ced8106ed6001568bce6e117350aff692970 Mon Sep 17 00:00:00 2001
+From: Gergely Nagy <algernon@madhouse-project.org>
+Date: Tue, 5 Apr 2016 09:26:24 +0200
+Subject: [PATCH 3/6] write_riemann: Use riemann-c-client
+
+Instead of implementing a collectd-specific riemann client, use the
+riemann-c-client library to talk to Riemann.
+
+This also adds support for TLS, as an added bonus, and makes it easier to
+improve the plugin later on.
+
+Signed-off-by: Gergely Nagy <algernon@madhouse-project.org>
+---
+ README              |    7 +-
+ configure.ac        |    7 +-
+ src/Makefile.am     |    7 +-
+ src/write_riemann.c | 1380 +++++++++++++++++++++++----------------------------
+ 4 files changed, 623 insertions(+), 778 deletions(-)
 
 diff --git a/README b/README
-index 3e2c0233adc3..6931fe64cc40 100644
+index 3e2c023..6931fe6 100644
 --- a/README
 +++ b/README
 @@ -760,8 +760,7 @@ Prerequisites
@@ -26,14 +43,14 @@ index 3e2c0233adc3..6931fe64cc40 100644
  ------------------------------------
  
 diff --git a/configure.ac b/configure.ac
-index 8f7a4f33e16d..339c2a79cc78 100644
+index 8f7a4f3..030a4fc 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -5092,6 +5092,10 @@ PKG_CHECK_MODULES([LIBNOTIFY], [libnotify],
  			 with_libnotify="no ($LIBNOTIFY_PKG_ERRORS)"
  		 fi])
  
-+PKG_CHECK_MODULES([RIEMANN_C], [riemann-client >= 1.8.0],
++PKG_CHECK_MODULES([RIEMANN_C], [riemann-client >= 1.5.0],
 + [with_riemann_c="yes"],
 + [with_riemann_c="no (pbg-config doesn't know riemann-c-client)"])
 +
@@ -58,7 +75,7 @@ index 8f7a4f33e16d..339c2a79cc78 100644
    Features:
      daemon mode . . . . . $enable_daemon
 diff --git a/src/Makefile.am b/src/Makefile.am
-index d53ec0c06fef..3116f782b9d1 100644
+index d53ec0c..3116f78 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
 @@ -1222,10 +1222,9 @@ endif
@@ -76,7 +93,7 @@ index d53ec0c06fef..3116f782b9d1 100644
  
  if BUILD_PLUGIN_WRITE_SENSU
 diff --git a/src/write_riemann.c b/src/write_riemann.c
-index 328341ea0e0f..ea69222ce4dd 100644
+index 59a3006..abf67b2 100644
 --- a/src/write_riemann.c
 +++ b/src/write_riemann.c
 @@ -2,6 +2,7 @@
@@ -87,33 +104,28 @@ index 328341ea0e0f..ea69222ce4dd 100644
   *
   * Permission is hereby granted, free of charge, to any person obtaining a
   * copy of this software and associated documentation files (the "Software"),
-@@ -24,34 +25,30 @@
+@@ -24,13 +25,13 @@
   * Authors:
   *   Pierre-Yves Ritschard <pyr at spootnik.org>
   *   Florian octo Forster <octo at collectd.org>
 + *   Gergely Nagy <algernon at madhouse-project.org>
   */
  
-+#include <sys/socket.h>
-+#include <arpa/inet.h>
+ #include <sys/socket.h>
+ #include <arpa/inet.h>
 +#include <riemann/riemann-client.h>
-+#include <errno.h>
-+#include <pthread.h>
-+
+ #include <errno.h>
+-#include <netdb.h>
+-#include <inttypes.h>
+ #include <pthread.h>
+ 
  #include "collectd.h"
- #include "plugin.h"
+@@ -38,19 +39,16 @@
  #include "common.h"
  #include "configfile.h"
  #include "utils_cache.h"
 -#include "riemann.pb-c.h"
--
--#include <sys/socket.h>
--#include <arpa/inet.h>
--#include <errno.h>
--#include <netdb.h>
--#include <inttypes.h>
--#include <pthread.h>
-+#include "write_riemann_threshold.h"
+ #include "write_riemann_threshold.h"
  
  #define RIEMANN_HOST		"localhost"
 -#define RIEMANN_PORT		"5555"
@@ -121,8 +133,6 @@ index 328341ea0e0f..ea69222ce4dd 100644
  #define RIEMANN_TTL_FACTOR      2.0
  #define RIEMANN_BATCH_MAX      8192
  
--int write_riemann_threshold_check(const data_set_t *, const value_list_t *, int *);
--
  struct riemann_host {
  	char			*name;
  	char			*event_service_prefix;
@@ -131,7 +141,7 @@ index 328341ea0e0f..ea69222ce4dd 100644
  	pthread_mutex_t	 lock;
      _Bool            batch_mode;
  	_Bool            notifications;
-@@ -59,14 +56,18 @@ struct riemann_host {
+@@ -58,14 +56,17 @@ struct riemann_host {
  	_Bool			 store_rates;
  	_Bool			 always_append_ds;
  	char			*node;
@@ -150,11 +160,10 @@ index 328341ea0e0f..ea69222ce4dd 100644
 +	char			 *tls_ca_file;
 +	char			 *tls_cert_file;
 +	char			 *tls_key_file;
-+	struct timeval timeout;
  };
  
  static char	**riemann_tags;
-@@ -74,334 +75,110 @@ static size_t	  riemann_tags_num;
+@@ -73,331 +74,101 @@ static size_t	  riemann_tags_num;
  static char	**riemann_attrs;
  static size_t     riemann_attrs_num;
  
@@ -247,7 +256,9 @@ index 328341ea0e0f..ea69222ce4dd 100644
 +			node, port);
  		return -1;
  	}
--
++	DEBUG("write_riemann plugin: got a successful connection for: %s:%d",
++	      node, port);
+ 
 -	host->s = -1;
 -	for (ai = res; ai != NULL; ai = ai->ai_next) {
 -		if ((host->s = socket(ai->ai_family,
@@ -260,23 +271,14 @@ index 328341ea0e0f..ea69222ce4dd 100644
 -			close(host->s);
 -			host->s = -1;
 -			continue;
-+	if (host->timeout.tv_sec != 0) {
-+		if (riemann_client_set_timeout(host->client, &host->timeout) != 0) {
-+			riemann_client_free(host->client);
-+			host->client = NULL;
-+			WARNING("write_riemann plugin: Unable to connect to Riemann at %s:%d",
-+			        node, port);
-+			return -1;
- 		}
+-		}
 -
 -		host->flags |= F_CONNECT;
 -		DEBUG("write_riemann plugin: got a successful connection for: %s:%s",
 -				node, service);
 -		break;
- 	}
-+	DEBUG("write_riemann plugin: got a successful connection for: %s:%d",
-+	      node, port);
- 
+-	}
+-
 -	freeaddrinfo(res);
 -
 -	if (host->s < 0) {
@@ -320,12 +322,11 @@ index 328341ea0e0f..ea69222ce4dd 100644
 -	if (host->use_tcp)
 -		buffer_len += 4;
 -
--	buffer = malloc (buffer_len);
+-	buffer = calloc (1, buffer_len);
 -	if (buffer == NULL) {
--		ERROR ("write_riemann plugin: malloc failed.");
+-		ERROR ("write_riemann plugin: calloc failed.");
 -		return ENOMEM;
 -	}
--	memset (buffer, 0, buffer_len);
 -
 -	if (host->use_tcp)
 -	{
@@ -455,8 +456,7 @@ index 328341ea0e0f..ea69222ce4dd 100644
 -{
 -	return (strarray_add (&event->tags, &event->n_tags, tag));
 -} /* }}} int riemann_event_add_tag */
-+} /* }}} int wrr_send */
- 
+-
 -static int riemann_event_add_attribute(Event *event, /* {{{ */
 -		char const *key, char const *value)
 -{
@@ -486,7 +486,8 @@ index 328341ea0e0f..ea69222ce4dd 100644
 -
 -	event->attributes[event->n_attributes] = a;
 -	event->n_attributes++;
--
++} /* }}} int wrr_send */
+ 
 -	return (0);
 -} /* }}} int riemann_event_add_attribute */
 -
@@ -503,13 +504,12 @@ index 328341ea0e0f..ea69222ce4dd 100644
  	notification_meta_t *meta;
  	int i;
  
--	msg = malloc (sizeof (*msg));
+-	msg = calloc (1, sizeof (*msg));
 -	if (msg == NULL)
 -	{
--		ERROR ("write_riemann plugin: malloc failed.");
+-		ERROR ("write_riemann plugin: calloc failed.");
 -		return (NULL);
 -	}
--	memset (msg, 0, sizeof (*msg));
 -	msg__init (msg);
 -
 -	msg->events = malloc (sizeof (*msg->events));
@@ -520,15 +520,14 @@ index 328341ea0e0f..ea69222ce4dd 100644
 -		return (NULL);
 -	}
 -
--	event = malloc (sizeof (*event));
+-	event = calloc (1, sizeof (*event));
 -	if (event == NULL)
 -	{
--		ERROR ("write_riemann plugin: malloc failed.");
+-		ERROR ("write_riemann plugin: calloc failed.");
 -		sfree (msg->events);
 -		sfree (msg);
 -		return (NULL);
 -	}
--	memset (event, 0, sizeof (*event));
 -	event__init (event);
 -
 -	msg->events[0] = event;
@@ -541,7 +540,7 @@ index 328341ea0e0f..ea69222ce4dd 100644
  	switch (n->severity)
  	{
  		case NOTIF_OKAY:	severity = "ok"; break;
-@@ -409,354 +186,368 @@ static Msg *riemann_notification_to_protobuf(struct riemann_host *host, /* {{{ *
+@@ -405,352 +176,389 @@ static Msg *riemann_notification_to_protobuf(struct riemann_host *host, /* {{{ *
  		case NOTIF_FAILURE:	severity = "critical"; break;
  		default:		severity = "unknown";
  	}
@@ -561,28 +560,37 @@ index 328341ea0e0f..ea69222ce4dd 100644
 +
  	if (n->host[0] != 0)
 -		riemann_event_add_attribute (event, "host", n->host);
-+		riemann_event_string_attribute_add(event, "host", n->host);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create("host", n->host));
  	if (n->plugin[0] != 0)
 -		riemann_event_add_attribute (event, "plugin", n->plugin);
-+		riemann_event_string_attribute_add(event, "plugin", n->plugin);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create("plugin", n->plugin));
  	if (n->plugin_instance[0] != 0)
 -		riemann_event_add_attribute (event, "plugin_instance",
 -				n->plugin_instance);
-+		riemann_event_string_attribute_add(event, "plugin_instance", n->plugin_instance);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create("plugin_instance",
++								     n->plugin_instance));
  
  	if (n->type[0] != 0)
 -		riemann_event_add_attribute (event, "type", n->type);
-+		riemann_event_string_attribute_add(event, "type", n->type);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create("type", n->type));
  	if (n->type_instance[0] != 0)
 -		riemann_event_add_attribute (event, "type_instance",
 -				n->type_instance);
-+		riemann_event_string_attribute_add(event, "type_instance", n->type_instance);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create("type_instance",
++								     n->type_instance));
  
  	for (i = 0; i < riemann_attrs_num; i += 2)
 -		riemann_event_add_attribute(event,
 -					    riemann_attrs[i],
 -					    riemann_attrs[i +1]);
-+		riemann_event_string_attribute_add(event, riemann_attrs[i], riemann_attrs[i+1]);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create(riemann_attrs[i],
++								     riemann_attrs[i +1]));
  
  	for (i = 0; i < riemann_tags_num; i++)
 -		riemann_event_add_tag (event, riemann_tags[i]);
@@ -595,7 +603,8 @@ index 328341ea0e0f..ea69222ce4dd 100644
  
  	if (n->message[0] != 0)
 -		riemann_event_add_attribute (event, "description", n->message);
-+		riemann_event_string_attribute_add(event, "description", n->message);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create("description", n->message));
  
  	/* Pull in values from threshold and add extra attributes */
  	for (meta = n->meta; meta != NULL; meta = meta->next)
@@ -614,7 +623,9 @@ index 328341ea0e0f..ea69222ce4dd 100644
  
  		if (meta->type == NM_TYPE_STRING) {
 -			riemann_event_add_attribute (event, meta->name, meta->nm_value.nm_string);
-+			riemann_event_string_attribute_add(event, meta->name, meta->nm_value.nm_string);
++			riemann_event_attribute_add(event,
++						    riemann_attribute_create(meta->name,
++									     meta->nm_value.nm_string));
  			continue;
  		}
  	}
@@ -656,15 +667,14 @@ index 328341ea0e0f..ea69222ce4dd 100644
 -	int i;
 +	size_t i;
  
--	event = malloc (sizeof (*event));
+-	event = calloc (1, sizeof (*event));
 +	event = riemann_event_new();
  	if (event == NULL)
  	{
--		ERROR ("write_riemann plugin: malloc failed.");
+-		ERROR ("write_riemann plugin: calloc failed.");
 +		ERROR("write_riemann plugin: riemann_event_new() failed.");
  		return (NULL);
  	}
--	memset (event, 0, sizeof (*event));
 -	event__init (event);
  
 -	event->host = strdup (vl->host);
@@ -695,10 +705,10 @@ index 328341ea0e0f..ea69222ce4dd 100644
 +			  RIEMANN_EVENT_FIELD_HOST, vl->host,
 +			  RIEMANN_EVENT_FIELD_TIME, (int64_t) CDTIME_T_TO_TIME_T(vl->time),
 +			  RIEMANN_EVENT_FIELD_TTL, (float) CDTIME_T_TO_DOUBLE(vl->interval) * host->ttl_factor,
-+			  RIEMANN_EVENT_FIELD_STRING_ATTRIBUTES,
-+			  "plugin", vl->plugin,
-+			  "type", vl->type,
-+			  "ds_name", ds->ds[index].name,
++			  RIEMANN_EVENT_FIELD_ATTRIBUTES,
++			  riemann_attribute_create("plugin", vl->plugin),
++			  riemann_attribute_create("type", vl->type),
++			  riemann_attribute_create("ds_name", ds->ds[index].name),
 +			  NULL,
 +			  RIEMANN_EVENT_FIELD_SERVICE, service_buffer,
 +			  RIEMANN_EVENT_FIELD_NONE);
@@ -739,11 +749,15 @@ index 328341ea0e0f..ea69222ce4dd 100644
 -				vl->plugin_instance);
 -
 -	riemann_event_add_attribute (event, "type", vl->type);
-+		riemann_event_string_attribute_add(event, "plugin_instance", vl->plugin_instance);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create("plugin_instance",
++								     vl->plugin_instance));
  	if (vl->type_instance[0] != 0)
 -		riemann_event_add_attribute (event, "type_instance",
 -				vl->type_instance);
-+		riemann_event_string_attribute_add(event, "type_instance", vl->type_instance);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create("type_instance",
++								     vl->type_instance));
  
  	if ((ds->ds[index].type != DS_TYPE_GAUGE) && (rates != NULL))
  	{
@@ -754,14 +768,16 @@ index 328341ea0e0f..ea69222ce4dd 100644
 -		riemann_event_add_attribute (event, "ds_type", ds_type);
 +		ssnprintf(ds_type, sizeof(ds_type), "%s:rate",
 +			  DS_TYPE_TO_STRING(ds->ds[index].type));
-+		riemann_event_string_attribute_add(event, "ds_type", ds_type);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create("ds_type", ds_type));
  	}
  	else
  	{
 -		riemann_event_add_attribute (event, "ds_type",
 -				DS_TYPE_TO_STRING(ds->ds[index].type));
-+		riemann_event_string_attribute_add(event, "ds_type",
-+                                       DS_TYPE_TO_STRING(ds->ds[index].type));
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create("ds_type",
++								     DS_TYPE_TO_STRING(ds->ds[index].type)));
  	}
 -	riemann_event_add_attribute (event, "ds_name", ds->ds[index].name);
 +
@@ -771,14 +787,17 @@ index 328341ea0e0f..ea69222ce4dd 100644
 -		ssnprintf (ds_index, sizeof (ds_index), "%zu", index);
 -		riemann_event_add_attribute (event, "ds_index", ds_index);
 +		ssnprintf(ds_index, sizeof(ds_index), "%zu", index);
-+		riemann_event_string_attribute_add(event, "ds_index", ds_index);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create("ds_index", ds_index));
  	}
  
  	for (i = 0; i < riemann_attrs_num; i += 2)
 -		riemann_event_add_attribute(event,
 -					    riemann_attrs[i],
 -					    riemann_attrs[i +1]);
-+		riemann_event_string_attribute_add(event, riemann_attrs[i], riemann_attrs[i +1]);
++		riemann_event_attribute_add(event,
++					    riemann_attribute_create(riemann_attrs[i],
++								     riemann_attrs[i +1]));
  
  	for (i = 0; i < riemann_tags_num; i++)
 -		riemann_event_add_tag (event, riemann_tags[i]);
@@ -870,14 +889,13 @@ index 328341ea0e0f..ea69222ce4dd 100644
  	gauge_t *rates = NULL;
  
  	/* Initialize the Msg structure. */
--	msg = malloc (sizeof (*msg));
+-	msg = calloc (1, sizeof (*msg));
 +	msg = riemann_message_new();
  	if (msg == NULL)
  	{
--		ERROR ("write_riemann plugin: malloc failed.");
+-		ERROR ("write_riemann plugin: calloc failed.");
 -		return (NULL);
 -	}
--	memset (msg, 0, sizeof (*msg));
 -	msg__init (msg);
 -
 -	/* Set up events. First, the list of pointers. */
@@ -960,18 +978,18 @@ index 328341ea0e0f..ea69222ce4dd 100644
 +	}
 +	wrr_send(host, host->batch_msg);
 +	riemann_message_free(host->batch_msg);
- 
--	if (host->use_tcp && ((status = riemann_recv_ack(host)) != 0))
--        riemann_disconnect (host);
++
 +	if (host->client_type != RIEMANN_CLIENT_UDP)
 +	{
 +		riemann_message_t *response;
  
+-	if (host->use_tcp && ((status = riemann_recv_ack(host)) != 0))
+-        riemann_disconnect (host);
++		response = riemann_client_recv_message(host->client);
+ 
 -    host->batch_init = cdtime();
 -    host->batch_msg = NULL;
 -    return status;
-+		response = riemann_client_recv_message(host->client);
-+
 +		if (!response)
 +		{
 +			wrr_disconnect(host);
@@ -1092,21 +1110,21 @@ index 328341ea0e0f..ea69222ce4dd 100644
 +			return -1;
 +		}
 +	}
-+
-+	len = riemann_message_get_packed_size(host->batch_msg);
+ 
+-    pthread_mutex_unlock(&host->lock);
+-    return ret;
+-} /* }}} Msg *riemann_batch_add_value_list */
++	len = protobuf_c_message_get_packed_size((const ProtobufCMessage*)(host->batch_msg));
 +	ret = 0;
 +	if ((host->batch_max < 0) || (((size_t) host->batch_max) <= len)) {
 +		ret = wrr_batch_flush_nolock(0, host);
 +	}
  
--    pthread_mutex_unlock(&host->lock);
--    return ret;
--} /* }}} Msg *riemann_batch_add_value_list */
+-static int riemann_notification(const notification_t *n, user_data_t *ud) /* {{{ */
 +	pthread_mutex_unlock(&host->lock);
 +	return ret;
 +} /* }}} riemann_message_t *wrr_batch_add_value_list */
- 
--static int riemann_notification(const notification_t *n, user_data_t *ud) /* {{{ */
++
 +static int wrr_notification(const notification_t *n, user_data_t *ud) /* {{{ */
  {
  	int			 status;
@@ -1116,7 +1134,7 @@ index 328341ea0e0f..ea69222ce4dd 100644
  
  	if (!host->notifications)
  		return 0;
-@@ -764,322 +555,358 @@ static int riemann_notification(const notification_t *n, user_data_t *ud) /* {{{
+@@ -758,322 +566,352 @@ static int riemann_notification(const notification_t *n, user_data_t *ud) /* {{{
      /*
       * Never batch for notifications, send them ASAP
       */
@@ -1148,13 +1166,13 @@ index 328341ea0e0f..ea69222ce4dd 100644
  	int			 statuses[vl->values_len];
  	struct riemann_host	*host = ud->data;
 -	Msg			*msg;
-+	riemann_message_t	*msg;
- 
+-
 -	if (host->check_thresholds)
 -		write_riemann_threshold_check(ds, vl, statuses);
 -
 -    if (host->use_tcp == 1 && host->batch_mode) {
--
++	riemann_message_t	*msg;
+ 
 -        riemann_batch_add_value_list (host, ds, vl, statuses);
 -
 -
@@ -1410,8 +1428,6 @@ index 328341ea0e0f..ea69222ce4dd 100644
 +  host->ttl_factor = RIEMANN_TTL_FACTOR;
 +  host->client = NULL;
 +  host->client_type = RIEMANN_CLIENT_TCP;
-+  host->timeout.tv_sec = 0;
-+  host->timeout.tv_usec = 0;
 +
 +  status = cf_util_get_string(ci, &host->name);
 +  if (status != 0) {
@@ -1450,10 +1466,6 @@ index 328341ea0e0f..ea69222ce4dd 100644
 +        break;
 +    } else if (strcasecmp("BatchMaxSize", child->key) == 0) {
 +      status = cf_util_get_int(child, &host->batch_max);
-+      if (status != 0)
-+        break;
-+    } else if (strcasecmp("Timeout", child->key) == 0) {
-+      status = cf_util_get_int(child, (int *)&host->timeout.tv_sec);
 +      if (status != 0)
 +        break;
 +    } else if (strcasecmp("Port", child->key) == 0) {
@@ -1618,7 +1630,7 @@ index 328341ea0e0f..ea69222ce4dd 100644
 -				callback_name, status);
 -	else /* success */
 -		host->reference_count++;
--
+ 
 -	if (host->reference_count <= 1)
 -	{
 -		/* Both callbacks failed => free memory.
@@ -1629,17 +1641,17 @@ index 328341ea0e0f..ea69222ce4dd 100644
 -		riemann_free (host);
 -		return (-1);
 -	}
- 
--	host->reference_count--;
--	pthread_mutex_unlock (&host->lock);
 +  host->reference_count--;
 +  pthread_mutex_unlock(&host->lock);
  
--	return status;
--} /* }}} int riemann_config_node */
+-	host->reference_count--;
+-	pthread_mutex_unlock (&host->lock);
 +  return status;
 +} /* }}} int wrr_config_node */
  
+-	return status;
+-} /* }}} int riemann_config_node */
+-
 -static int riemann_config(oconfig_item_t *ci) /* {{{ */
 +static int wrr_config(oconfig_item_t *ci) /* {{{ */
  {
@@ -1757,41 +1769,6 @@ index 328341ea0e0f..ea69222ce4dd 100644
  }
  
  /* vim: set sw=8 sts=8 ts=8 noet : */
-diff --git a/src/write_riemann_threshold.c b/src/write_riemann_threshold.c
-index 6d5af032565b..b1f7297eec9b 100644
---- a/src/write_riemann_threshold.c
-+++ b/src/write_riemann_threshold.c
-@@ -25,16 +25,17 @@
-  *   Andrés J. Díaz <ajdiaz at connectical.com>
-  **/
- 
-+#include <assert.h>
-+#include <ltdl.h>
-+#include <pthread.h>
-+
- #include "collectd.h"
- #include "common.h"
- #include "plugin.h"
- #include "utils_avltree.h"
- #include "utils_cache.h"
- #include "utils_threshold.h"
--
--#include <assert.h>
--#include <ltdl.h>
--#include <pthread.h>
-+#include "write_riemann_threshold.h"
- 
- /*
-  * Threshold management
-diff --git a/src/write_riemann_threshold.h b/src/write_riemann_threshold.h
-new file mode 100644
-index 000000000000..d3b3fe9ab8fd
---- /dev/null
-+++ b/src/write_riemann_threshold.h
-@@ -0,0 +1,6 @@
-+#ifndef WRITE_RIEMANN_THRESHOLD_H
-+#define WRITE_RIEMANN_THRESHOLD_H
-+
-+int write_riemann_threshold_check(const data_set_t *, const value_list_t *, int *);
-+
-+#endif
+-- 
+2.8.0
+

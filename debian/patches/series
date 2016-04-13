@@ -1,4 +1,8 @@
 collection_conf_path.patch
 0001-snmp-accept-to-use-IpAddress-for-instances.patch
-986.patch
-986-amend.patch
+0001-write_riemann-plugin-malloc-memset-calloc.patch
+0002-write_riemann-move-prototype-to-header-file.patch
+0003-write_riemann-Use-riemann-c-client.patch
+0004-write_riemann-Use-riemann-c-client-1.6.0.patch
+0005-write_riemann-Add-support-for-timeouts.patch
+0006-write_riemann-rate-limit-logs-and-avoid-deadlocks.patch

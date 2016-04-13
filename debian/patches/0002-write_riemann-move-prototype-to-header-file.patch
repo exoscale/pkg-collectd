@@ -1,0 +1,93 @@
+From 321409ac114813a13b0c5c08fe1e5c5fdff7b8fb Mon Sep 17 00:00:00 2001
+From: Ruben Kerkhof <ruben@rubenkerkhof.com>
+Date: Tue, 1 Mar 2016 12:09:40 +0100
+Subject: [PATCH 2/6] write_riemann: move prototype to header file
+
+---
+ src/write_riemann.c           | 17 ++++++++---------
+ src/write_riemann_threshold.c |  9 +++++----
+ src/write_riemann_threshold.h |  6 ++++++
+ 3 files changed, 19 insertions(+), 13 deletions(-)
+ create mode 100644 src/write_riemann_threshold.h
+
+diff --git a/src/write_riemann.c b/src/write_riemann.c
+index d79c04c..59a3006 100644
+--- a/src/write_riemann.c
++++ b/src/write_riemann.c
+@@ -26,13 +26,6 @@
+  *   Florian octo Forster <octo at collectd.org>
+  */
+ 
+-#include "collectd.h"
+-#include "plugin.h"
+-#include "common.h"
+-#include "configfile.h"
+-#include "utils_cache.h"
+-#include "riemann.pb-c.h"
+-
+ #include <sys/socket.h>
+ #include <arpa/inet.h>
+ #include <errno.h>
+@@ -40,13 +33,19 @@
+ #include <inttypes.h>
+ #include <pthread.h>
+ 
++#include "collectd.h"
++#include "plugin.h"
++#include "common.h"
++#include "configfile.h"
++#include "utils_cache.h"
++#include "riemann.pb-c.h"
++#include "write_riemann_threshold.h"
++
+ #define RIEMANN_HOST		"localhost"
+ #define RIEMANN_PORT		"5555"
+ #define RIEMANN_TTL_FACTOR      2.0
+ #define RIEMANN_BATCH_MAX      8192
+ 
+-int write_riemann_threshold_check(const data_set_t *, const value_list_t *, int *);
+-
+ struct riemann_host {
+ 	char			*name;
+ 	char			*event_service_prefix;
+diff --git a/src/write_riemann_threshold.c b/src/write_riemann_threshold.c
+index 6d5af03..b1f7297 100644
+--- a/src/write_riemann_threshold.c
++++ b/src/write_riemann_threshold.c
+@@ -25,16 +25,17 @@
+  *   Andrés J. Díaz <ajdiaz at connectical.com>
+  **/
+ 
++#include <assert.h>
++#include <ltdl.h>
++#include <pthread.h>
++
+ #include "collectd.h"
+ #include "common.h"
+ #include "plugin.h"
+ #include "utils_avltree.h"
+ #include "utils_cache.h"
+ #include "utils_threshold.h"
+-
+-#include <assert.h>
+-#include <ltdl.h>
+-#include <pthread.h>
++#include "write_riemann_threshold.h"
+ 
+ /*
+  * Threshold management
+diff --git a/src/write_riemann_threshold.h b/src/write_riemann_threshold.h
+new file mode 100644
+index 0000000..d3b3fe9
+--- /dev/null
++++ b/src/write_riemann_threshold.h
+@@ -0,0 +1,6 @@
++#ifndef WRITE_RIEMANN_THRESHOLD_H
++#define WRITE_RIEMANN_THRESHOLD_H
++
++int write_riemann_threshold_check(const data_set_t *, const value_list_t *, int *);
++
++#endif
+-- 
+2.8.0
+
