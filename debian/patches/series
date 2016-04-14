@@ -6,3 +6,7 @@ collection_conf_path.patch
 0004-write_riemann-Use-riemann-c-client-1.6.0.patch
 0005-write_riemann-Add-support-for-timeouts.patch
 0006-write_riemann-rate-limit-logs-and-avoid-deadlocks.patch
+0007-write_riemann-kill-old-protobuf-files.patch
+0008-write_riemann-add-a-BatchFlushTimeout-option.patch
+0009-write_riemann-do-not-deadlock-when-sending-from-flus.patch
+0010-write_riemann-do-not-read-responses-twice.patch

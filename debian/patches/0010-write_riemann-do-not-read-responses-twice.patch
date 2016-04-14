@@ -1,0 +1,51 @@
+From 130246e3e82653d12598e4d063f5761e02a6d2c3 Mon Sep 17 00:00:00 2001
+From: Pierre-Yves Ritschard <pyr@spootnik.org>
+Date: Thu, 14 Apr 2016 10:13:00 +0200
+Subject: [PATCH 10/10] write_riemann: do not read responses twice
+
+---
+ src/write_riemann.c | 22 ++++------------------
+ 1 file changed, 4 insertions(+), 18 deletions(-)
+
+diff --git a/src/write_riemann.c b/src/write_riemann.c
+index 3e79952..a319bdb 100644
+--- a/src/write_riemann.c
++++ b/src/write_riemann.c
+@@ -463,30 +463,16 @@ static int wrr_batch_flush_nolock(cdtime_t timeout,
+ 	cdtime_t    now;
+ 	int         status = 0;
+ 
+-	if (timeout > 0) {
+     now = cdtime();
+-		if ((host->batch_init + timeout) > now)
++	if (timeout > 0) {
++		if ((host->batch_init + timeout) > now) {
+ 			return status;
+         }
++	}
+ 	wrr_send_nolock(host, host->batch_msg);
+ 	riemann_message_free(host->batch_msg);
+ 
+-	if (host->client_type != RIEMANN_CLIENT_UDP)
+-	{
+-		riemann_message_t *response;
+-
+-		response = riemann_client_recv_message(host->client);
+-
+-		if (!response)
+-		{
+-			wrr_disconnect(host);
+-			return errno;
+-		}
+-
+-		riemann_message_free(response);
+-	}
+-
+-	host->batch_init = cdtime();
++	host->batch_init = now;
+ 	host->batch_msg = NULL;
+ 	return status;
+ }
+-- 
+2.8.0
+
