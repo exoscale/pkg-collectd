@@ -1,7 +1,7 @@
 From 610dc482c9d086822305142c1c83a68ef6f4dcdb Mon Sep 17 00:00:00 2001
 From: Gergely Nagy <algernon@madhouse-project.org>
 Date: Wed, 6 Apr 2016 09:14:19 +0200
-Subject: [PATCH 4/6] write_riemann: Use riemann-c-client 1.6.0+
+Subject: [PATCH 04/10] write_riemann: Use riemann-c-client 1.6.0+
 
 Use a newer version of riemann-c-client, so that we can use
 riemann_message_get_packed_size(), which was introduced partly to support

@@ -4,15 +4,24 @@ Date: Thu, 14 Apr 2016 10:09:38 +0200
 Subject: [PATCH 07/10] write_riemann: kill old protobuf files
 
 ---
- src/Makefile.am   | 11 -----------
+ src/Makefile.am   | 13 +------------
  src/riemann.proto | 45 ---------------------------------------------
- 2 files changed, 56 deletions(-)
+ 2 files changed, 1 insertion(+), 57 deletions(-)
  delete mode 100644 src/riemann.proto
 
 diff --git a/src/Makefile.am b/src/Makefile.am
 index 3116f78..6692663 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
+@@ -99,7 +99,7 @@ if BUILD_PLUGIN_AMQP
+ pkglib_LTLIBRARIES += amqp.la
+ amqp_la_SOURCES = amqp.c \
+ 		  utils_cmd_putval.c utils_cmd_putval.h \
+-  	          utils_parse_option.c utils_parse_option.h \
++	          utils_parse_option.c utils_parse_option.h \
+ 		  utils_format_graphite.c utils_format_graphite.h \
+ 		  utils_format_json.c utils_format_json.h
+ amqp_la_LDFLAGS = $(PLUGIN_LDFLAGS) $(BUILD_WITH_LIBRABBITMQ_LDFLAGS)
 @@ -1340,17 +1340,6 @@ pinba.pb-c.c pinba.pb-c.h: pinba.proto
  	$(AM_V_PROTOC_C)protoc-c -I$(srcdir) --c_out . $(srcdir)/pinba.proto
  endif

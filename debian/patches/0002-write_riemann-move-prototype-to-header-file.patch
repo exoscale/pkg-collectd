@@ -1,7 +1,7 @@
 From 321409ac114813a13b0c5c08fe1e5c5fdff7b8fb Mon Sep 17 00:00:00 2001
 From: Ruben Kerkhof <ruben@rubenkerkhof.com>
 Date: Tue, 1 Mar 2016 12:09:40 +0100
-Subject: [PATCH 2/6] write_riemann: move prototype to header file
+Subject: [PATCH 02/10] write_riemann: move prototype to header file
 
 ---
  src/write_riemann.c           | 17 ++++++++---------

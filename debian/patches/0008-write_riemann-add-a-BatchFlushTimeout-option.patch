@@ -4,8 +4,8 @@ Date: Thu, 14 Apr 2016 10:11:18 +0200
 Subject: [PATCH 08/10] write_riemann: add a BatchFlushTimeout option
 
 ---
- src/write_riemann.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ src/write_riemann.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
 diff --git a/src/write_riemann.c b/src/write_riemann.c
 index 26e232d..67ef9ff 100644
@@ -27,18 +27,20 @@ index 26e232d..67ef9ff 100644
  
  	msg = wrr_value_list_to_message(host, ds, vl, statuses);
  	if (msg == NULL)
-@@ -548,6 +550,11 @@ static int wrr_batch_add_value_list(struct riemann_host *host, /* {{{ */
+@@ -548,7 +550,12 @@ static int wrr_batch_add_value_list(struct riemann_host *host, /* {{{ */
  	ret = 0;
  	if ((host->batch_max < 0) || (((size_t) host->batch_max) <= len)) {
  		ret = wrr_batch_flush_nolock(0, host);
+-	}
 +	} else {
 +        if (host->batch_timeout > 0) {
 +            timeout = TIME_T_TO_CDTIME_T((time_t)host->batch_timeout);
 +            ret = wrr_batch_flush_nolock(timeout, host);
 +        }
-     }
++    }
  
  	pthread_mutex_unlock(&host->lock);
+ 	return ret;
 @@ -661,6 +668,7 @@ static int wrr_config_node(oconfig_item_t *ci) /* {{{ */
    host->batch_mode = 1;
    host->batch_max = RIEMANN_BATCH_MAX; /* typical MSS */

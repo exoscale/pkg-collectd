@@ -4,8 +4,8 @@ Date: Thu, 14 Apr 2016 10:13:00 +0200
 Subject: [PATCH 10/10] write_riemann: do not read responses twice
 
 ---
- src/write_riemann.c | 22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ src/write_riemann.c | 24 +++++-------------------
+ 1 file changed, 5 insertions(+), 19 deletions(-)
 
 diff --git a/src/write_riemann.c b/src/write_riemann.c
 index 3e79952..a319bdb 100644
@@ -15,14 +15,14 @@ index 3e79952..a319bdb 100644
  	cdtime_t    now;
  	int         status = 0;
  
--	if (timeout > 0) {
-     now = cdtime();
++    now = cdtime();
+ 	if (timeout > 0) {
+-		now = cdtime();
 -		if ((host->batch_init + timeout) > now)
-+	if (timeout > 0) {
 +		if ((host->batch_init + timeout) > now) {
  			return status;
-         }
-+	}
++        }
+ 	}
  	wrr_send_nolock(host, host->batch_msg);
  	riemann_message_free(host->batch_msg);
  
@@ -46,6 +46,15 @@ index 3e79952..a319bdb 100644
  	host->batch_msg = NULL;
  	return status;
  }
+@@ -613,7 +599,7 @@ static int wrr_write(const data_set_t *ds, /* {{{ */
+   }
+ 
+   if (host->client_type != RIEMANN_CLIENT_UDP && host->batch_mode) {
+-    wrr_batch_add_value_list(host, ds, vl, statuses);
++      wrr_batch_add_value_list(host, ds, vl, statuses);
+   } else {
+     msg = wrr_value_list_to_message(host, ds, vl, statuses);
+     if (msg == NULL)
 -- 
 2.8.0
 

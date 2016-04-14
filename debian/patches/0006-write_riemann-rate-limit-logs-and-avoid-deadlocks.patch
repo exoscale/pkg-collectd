@@ -1,7 +1,7 @@
 From 6db97d401b36ffaf0a352edbbbe2941c9e87645d Mon Sep 17 00:00:00 2001
 From: Pierre-Yves Ritschard <pyr@spootnik.org>
 Date: Wed, 13 Apr 2016 23:32:42 +0200
-Subject: [PATCH 6/6] write_riemann: rate limit logs and avoid deadlocks
+Subject: [PATCH 06/10] write_riemann: rate limit logs and avoid deadlocks
 
 ---
  src/daemon/utils_complain.c |  1 -
