@@ -1,0 +1,32 @@
+From 1eaf573c8724b2b97d670863c0f8cb7afa9ecbf8 Mon Sep 17 00:00:00 2001
+From: Pierre-Yves Ritschard <pyr@spootnik.org>
+Date: Mon, 18 Apr 2016 14:50:28 +0200
+Subject: [PATCH] write_kafka: do not call depreciated functions unless
+ necessary
+
+---
+ src/write_kafka.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/write_kafka.c b/src/write_kafka.c
+index a5371d4..2c3296d 100644
+--- a/src/write_kafka.c
++++ b/src/write_kafka.c
+@@ -114,7 +114,8 @@ static int kafka_handle(struct kafka_topic_context *ctx) /* {{{ */
+ 
+         INFO ("write_kafka plugin: created KAFKA handle : %s", rd_kafka_name(ctx->kafka));
+ 
+-#ifdef HAVE_LIBRDKAFKA_LOGGER
++#if defined(HAVE_LIBRDKAFKA_LOGGER) && !defined(HAVE_LIBRDKAFKA_LOG_CB)
++        if
+         rd_kafka_set_logger(ctx->kafka, kafka_log);
+ #endif
+     }
+@@ -469,4 +470,3 @@ void module_register(void)
+ {
+     plugin_register_complex_config ("write_kafka", kafka_config);
+ }
+-
+-- 
+2.8.0
+
