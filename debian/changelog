@@ -1,3 +1,9 @@
+collectd (5.5.1-0~precise0+exo5) precise; urgency=medium
+
+  * Compile in write_kafka
+
+ -- Pierre-Yves Ritschard <pyr@spootnik.org>  Tue, 19 Apr 2016 10:39:00 +0200
+
 collectd (5.5.1-0~precise0+exo4) precise; urgency=medium
 
   * Use write_kafka.c from master
