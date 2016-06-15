@@ -11,3 +11,4 @@ collection_conf_path.patch
 0009-write_riemann-do-not-deadlock-when-sending-from-flus.patch
 0010-write_riemann-do-not-read-responses-twice.patch
 0011-write_kafka-do-not-call-depreciated-functions-unless.patch
+0001-write_kafka-ensure-key-is-properly-hashed-to-select-.patch
