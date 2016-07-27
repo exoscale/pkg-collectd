@@ -14,11 +14,11 @@ Signed-off-by: Gergely Nagy <algernon@madhouse-project.org>
  src/write_riemann.c | 16 ++++++++++++++++
  2 files changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/configure.ac b/configure.ac
-index 6ec779f..339c2a7 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -5092,7 +5092,7 @@ PKG_CHECK_MODULES([LIBNOTIFY], [libnotify],
+Index: collectd-5.5.2/configure.ac
+===================================================================
+--- collectd-5.5.2.orig/configure.ac
++++ collectd-5.5.2/configure.ac
+@@ -5161,7 +5161,7 @@ PKG_CHECK_MODULES([LIBNOTIFY], [libnotif
  			 with_libnotify="no ($LIBNOTIFY_PKG_ERRORS)"
  		 fi])
  
@@ -27,10 +27,10 @@ index 6ec779f..339c2a7 100644
   [with_riemann_c="yes"],
   [with_riemann_c="no (pbg-config doesn't know riemann-c-client)"])
  
-diff --git a/src/write_riemann.c b/src/write_riemann.c
-index acc44c4..ea69222 100644
---- a/src/write_riemann.c
-+++ b/src/write_riemann.c
+Index: collectd-5.5.2/src/write_riemann.c
+===================================================================
+--- collectd-5.5.2.orig/src/write_riemann.c
++++ collectd-5.5.2/src/write_riemann.c
 @@ -67,6 +67,7 @@ struct riemann_host {
  	char			 *tls_ca_file;
  	char			 *tls_cert_file;
@@ -39,7 +39,7 @@ index acc44c4..ea69222 100644
  };
  
  static char	**riemann_tags;
-@@ -98,6 +99,15 @@ static int wrr_connect(struct riemann_host *host) /* {{{ */
+@@ -98,6 +99,15 @@ static int wrr_connect(struct riemann_ho
  			node, port);
  		return -1;
  	}
@@ -55,7 +55,7 @@ index acc44c4..ea69222 100644
  	DEBUG("write_riemann plugin: got a successful connection for: %s:%d",
  	      node, port);
  
-@@ -641,6 +651,8 @@ static int wrr_config_node(oconfig_item_t *ci) /* {{{ */
+@@ -641,6 +651,8 @@ static int wrr_config_node(oconfig_item_
    host->ttl_factor = RIEMANN_TTL_FACTOR;
    host->client = NULL;
    host->client_type = RIEMANN_CLIENT_TCP;
@@ -64,7 +64,7 @@ index acc44c4..ea69222 100644
  
    status = cf_util_get_string(ci, &host->name);
    if (status != 0) {
-@@ -681,6 +693,10 @@ static int wrr_config_node(oconfig_item_t *ci) /* {{{ */
+@@ -681,6 +693,10 @@ static int wrr_config_node(oconfig_item_
        status = cf_util_get_int(child, &host->batch_max);
        if (status != 0)
          break;
@@ -75,6 +75,3 @@ index acc44c4..ea69222 100644
      } else if (strcasecmp("Port", child->key) == 0) {
        host->port = cf_util_get_port_number(child);
        if (host->port == -1) {
--- 
-2.8.0
-

@@ -1,8 +1,21 @@
-collectd (5.5.1-0~xenial0+exo1) xenial; urgency=medium
+collectd (5.5.2-0~xenial0+exo1) xenial; urgency=medium
 
   * Forward-port to Xenial.
 
- -- Vincent Bernat <bernat@debian.org>  Fri, 03 Jun 2016 07:08:12 +0200
+ -- Vincent Bernat <bernat@debian.org>  Wed, 27 Jul 2016 23:29:32 +0200
+
+collectd (5.5.2-0~precise0+exo1) precise; urgency=medium
+
+  * New upstream release.
+     + Refresh patches.
+
+ -- Vincent Bernat <bernat@debian.org>  Wed, 27 Jul 2016 22:47:52 +0200
+
+collectd (5.5.1-0~precise0+exo6) precise; urgency=medium
+
+  * Fix key hashing for write_kafka plugin.
+
+ -- Vincent Bernat <bernat@debian.org>  Wed, 15 Jun 2016 09:55:01 +0200
 
 collectd (5.5.1-0~precise0+exo5) precise; urgency=medium
 
