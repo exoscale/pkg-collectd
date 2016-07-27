@@ -1,3 +1,10 @@
+collectd (5.5.2-0~precise0+exo1) precise; urgency=medium
+
+  * New upstream release.
+     + Refresh patches.
+
+ -- Vincent Bernat <bernat@debian.org>  Wed, 27 Jul 2016 22:47:52 +0200
+
 collectd (5.5.1-0~precise0+exo6) precise; urgency=medium
 
   * Fix key hashing for write_kafka plugin.

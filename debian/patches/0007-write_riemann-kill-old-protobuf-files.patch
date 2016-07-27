@@ -9,11 +9,11 @@ Subject: [PATCH 07/10] write_riemann: kill old protobuf files
  2 files changed, 1 insertion(+), 57 deletions(-)
  delete mode 100644 src/riemann.proto
 
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 3116f78..6692663 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -99,7 +99,7 @@ if BUILD_PLUGIN_AMQP
+Index: collectd-5.5.2/src/Makefile.am
+===================================================================
+--- collectd-5.5.2.orig/src/Makefile.am
++++ collectd-5.5.2/src/Makefile.am
+@@ -100,7 +100,7 @@ if BUILD_PLUGIN_AMQP
  pkglib_LTLIBRARIES += amqp.la
  amqp_la_SOURCES = amqp.c \
  		  utils_cmd_putval.c utils_cmd_putval.h \
@@ -22,7 +22,7 @@ index 3116f78..6692663 100644
  		  utils_format_graphite.c utils_format_graphite.h \
  		  utils_format_json.c utils_format_json.h
  amqp_la_LDFLAGS = $(PLUGIN_LDFLAGS) $(BUILD_WITH_LIBRABBITMQ_LDFLAGS)
-@@ -1340,17 +1340,6 @@ pinba.pb-c.c pinba.pb-c.h: pinba.proto
+@@ -1343,17 +1343,6 @@ pinba.pb-c.c pinba.pb-c.h: pinba.proto
  	$(AM_V_PROTOC_C)protoc-c -I$(srcdir) --c_out . $(srcdir)/pinba.proto
  endif
  
@@ -40,10 +40,9 @@ index 3116f78..6692663 100644
  install-exec-hook:
  	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)
  	if test -e $(DESTDIR)$(sysconfdir)/collectd.conf; \
-diff --git a/src/riemann.proto b/src/riemann.proto
-deleted file mode 100644
-index 3e946a3..0000000
---- a/src/riemann.proto
+Index: collectd-5.5.2/src/riemann.proto
+===================================================================
+--- collectd-5.5.2.orig/src/riemann.proto
 +++ /dev/null
 @@ -1,45 +0,0 @@
 -option java_package = "com.aphyr.riemann";
@@ -91,6 +90,3 @@ index 3e946a3..0000000
 -  required string key = 1;
 -  optional string value = 2;
 -}
--- 
-2.8.0
-

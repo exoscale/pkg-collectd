@@ -17,10 +17,10 @@ Signed-off-by: Gergely Nagy <algernon@madhouse-project.org>
  src/write_riemann.c | 1380 +++++++++++++++++++++++----------------------------
  4 files changed, 623 insertions(+), 778 deletions(-)
 
-diff --git a/README b/README
-index 3e2c023..6931fe6 100644
---- a/README
-+++ b/README
+Index: collectd-5.5.2/README
+===================================================================
+--- collectd-5.5.2.orig/README
++++ collectd-5.5.2/README
 @@ -760,8 +760,7 @@ Prerequisites
  
    * libprotobuf-c, protoc-c (optional)
@@ -42,11 +42,11 @@ index 3e2c023..6931fe6 100644
  Configuring / Compiling / Installing
  ------------------------------------
  
-diff --git a/configure.ac b/configure.ac
-index 8f7a4f3..030a4fc 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -5092,6 +5092,10 @@ PKG_CHECK_MODULES([LIBNOTIFY], [libnotify],
+Index: collectd-5.5.2/configure.ac
+===================================================================
+--- collectd-5.5.2.orig/configure.ac
++++ collectd-5.5.2/configure.ac
+@@ -5161,6 +5161,10 @@ PKG_CHECK_MODULES([LIBNOTIFY], [libnotif
  			 with_libnotify="no ($LIBNOTIFY_PKG_ERRORS)"
  		 fi])
  
@@ -57,7 +57,7 @@ index 8f7a4f3..030a4fc 100644
  # Check for enabled/disabled features
  #
  
-@@ -5727,7 +5731,7 @@ AC_PLUGIN([write_kafka],  [$with_librdkafka],  [Kafka output plugin])
+@@ -5802,7 +5806,7 @@ AC_PLUGIN([write_kafka],  [$with_librdka
  AC_PLUGIN([write_log], [yes],                  [Log output plugin])
  AC_PLUGIN([write_mongodb], [$with_libmongoc],  [MongoDB output plugin])
  AC_PLUGIN([write_redis], [$with_libhiredis],    [Redis output plugin])
@@ -66,7 +66,7 @@ index 8f7a4f3..030a4fc 100644
  AC_PLUGIN([write_sensu], [yes],                [Sensu output plugin])
  AC_PLUGIN([write_tsdb],  [yes],                [TSDB output plugin])
  AC_PLUGIN([xmms],        [$with_libxmms],      [XMMS statistics])
-@@ -5967,6 +5971,7 @@ Configuration:
+@@ -6042,6 +6046,7 @@ Configuration:
      oracle  . . . . . . . $with_oracle
      protobuf-c  . . . . . $have_protoc_c
      python  . . . . . . . $with_python
@@ -74,28 +74,26 @@ index 8f7a4f3..030a4fc 100644
  
    Features:
      daemon mode . . . . . $enable_daemon
-diff --git a/src/Makefile.am b/src/Makefile.am
-index d53ec0c..3116f78 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -1222,10 +1222,9 @@ endif
- 
+Index: collectd-5.5.2/src/Makefile.am
+===================================================================
+--- collectd-5.5.2.orig/src/Makefile.am
++++ collectd-5.5.2/src/Makefile.am
+@@ -1226,9 +1226,8 @@ endif
  if BUILD_PLUGIN_WRITE_RIEMANN
  pkglib_LTLIBRARIES += write_riemann.la
--write_riemann_la_SOURCES = write_riemann.c write_riemann_threshold.c
+ write_riemann_la_SOURCES = write_riemann.c write_riemann_threshold.c write_riemann_threshold.h
 -nodist_write_riemann_la_SOURCES = riemann.pb-c.c riemann.pb-c.h
 -write_riemann_la_LDFLAGS = $(PLUGIN_LDFLAGS)
 -write_riemann_la_LIBADD = -lprotobuf-c
-+write_riemann_la_SOURCES = write_riemann.c write_riemann_threshold.c write_riemann_threshold.h
 +write_riemann_la_LDFLAGS = $(PLUGIN_LDFLAGS) $(RIEMANN_C_LIBS)
 +write_riemann_la_CFLAGS = $(AM_CFLAGS) $(RIEMANN_C_CFLAGS)
  endif
  
  if BUILD_PLUGIN_WRITE_SENSU
-diff --git a/src/write_riemann.c b/src/write_riemann.c
-index 59a3006..abf67b2 100644
---- a/src/write_riemann.c
-+++ b/src/write_riemann.c
+Index: collectd-5.5.2/src/write_riemann.c
+===================================================================
+--- collectd-5.5.2.orig/src/write_riemann.c
++++ collectd-5.5.2/src/write_riemann.c
 @@ -2,6 +2,7 @@
   * collectd - src/write_riemann.c
   * Copyright (C) 2012,2013  Pierre-Yves Ritschard
@@ -242,23 +240,9 @@ index 59a3006..abf67b2 100644
 -	if ((e = getaddrinfo(node, service, &hints, &res)) != 0) {
 -		ERROR ("write_riemann plugin: Unable to resolve host \"%s\": %s",
 -			node, gai_strerror(e));
-+	port = (host->port) ? host->port : RIEMANN_PORT;
-+
-+	host->client = NULL;
-+
-+	host->client = riemann_client_create(host->client_type, node, port,
-+					     RIEMANN_CLIENT_OPTION_TLS_CA_FILE, host->tls_ca_file,
-+					     RIEMANN_CLIENT_OPTION_TLS_CERT_FILE, host->tls_cert_file,
-+					     RIEMANN_CLIENT_OPTION_TLS_KEY_FILE, host->tls_key_file,
-+					     RIEMANN_CLIENT_OPTION_NONE);
-+	if (host->client == NULL) {
-+		WARNING("write_riemann plugin: Unable to connect to Riemann at %s:%d",
-+			node, port);
- 		return -1;
- 	}
-+	DEBUG("write_riemann plugin: got a successful connection for: %s:%d",
-+	      node, port);
- 
+-		return -1;
+-	}
+-
 -	host->s = -1;
 -	for (ai = res; ai != NULL; ai = ai->ai_next) {
 -		if ((host->s = socket(ai->ai_family,
@@ -278,14 +262,27 @@ index 59a3006..abf67b2 100644
 -				node, service);
 -		break;
 -	}
--
++	port = (host->port) ? host->port : RIEMANN_PORT;
+ 
 -	freeaddrinfo(res);
--
++	host->client = NULL;
+ 
 -	if (host->s < 0) {
 -		WARNING("write_riemann plugin: Unable to connect to Riemann at %s:%s",
 -				node, service);
--		return -1;
--	}
++	host->client = riemann_client_create(host->client_type, node, port,
++					     RIEMANN_CLIENT_OPTION_TLS_CA_FILE, host->tls_ca_file,
++					     RIEMANN_CLIENT_OPTION_TLS_CERT_FILE, host->tls_cert_file,
++					     RIEMANN_CLIENT_OPTION_TLS_KEY_FILE, host->tls_key_file,
++					     RIEMANN_CLIENT_OPTION_NONE);
++	if (host->client == NULL) {
++		WARNING("write_riemann plugin: Unable to connect to Riemann at %s:%d",
++			node, port);
+ 		return -1;
+ 	}
++	DEBUG("write_riemann plugin: got a successful connection for: %s:%d",
++	      node, port);
++
  	return 0;
 -} /* }}} int riemann_connect */
 +} /* }}} int wrr_connect */
@@ -432,10 +429,10 @@ index 59a3006..abf67b2 100644
  	{
 -		status = riemann_recv_ack(host);
 +		riemann_message_t *response;
-+
-+		response = riemann_client_recv_message(host->client);
  
 -		if (status != 0)
++		response = riemann_client_recv_message(host->client);
++
 +		if (response == NULL)
  		{
 -			riemann_disconnect (host);
@@ -479,15 +476,15 @@ index 59a3006..abf67b2 100644
 -		return (ENOMEM);
 -	}
 -	attribute__init (a);
--
++} /* }}} int wrr_send */
+ 
 -	a->key = strdup (key);
 -	if (value != NULL)
 -		a->value = strdup (value);
 -
 -	event->attributes[event->n_attributes] = a;
 -	event->n_attributes++;
-+} /* }}} int wrr_send */
- 
+-
 -	return (0);
 -} /* }}} int riemann_event_add_attribute */
 -
@@ -540,7 +537,7 @@ index 59a3006..abf67b2 100644
  	switch (n->severity)
  	{
  		case NOTIF_OKAY:	severity = "ok"; break;
-@@ -405,352 +176,389 @@ static Msg *riemann_notification_to_protobuf(struct riemann_host *host, /* {{{ *
+@@ -405,352 +176,389 @@ static Msg *riemann_notification_to_prot
  		case NOTIF_FAILURE:	severity = "critical"; break;
  		default:		severity = "unknown";
  	}
@@ -978,18 +975,18 @@ index 59a3006..abf67b2 100644
 +	}
 +	wrr_send(host, host->batch_msg);
 +	riemann_message_free(host->batch_msg);
-+
+ 
+-	if (host->use_tcp && ((status = riemann_recv_ack(host)) != 0))
+-        riemann_disconnect (host);
 +	if (host->client_type != RIEMANN_CLIENT_UDP)
 +	{
 +		riemann_message_t *response;
  
--	if (host->use_tcp && ((status = riemann_recv_ack(host)) != 0))
--        riemann_disconnect (host);
-+		response = riemann_client_recv_message(host->client);
- 
 -    host->batch_init = cdtime();
 -    host->batch_msg = NULL;
 -    return status;
++		response = riemann_client_recv_message(host->client);
++
 +		if (!response)
 +		{
 +			wrr_disconnect(host);
@@ -1042,30 +1039,27 @@ index 59a3006..abf67b2 100644
 -                                         data_set_t const *ds,
 -                                         value_list_t const *vl,
 -                                         int *statuses)
-+static int wrr_batch_add_value_list(struct riemann_host *host, /* {{{ */
-+				    data_set_t const *ds,
-+				    value_list_t const *vl,
-+				    int *statuses)
- {
+-{
 -	size_t i;
 -    Event **events;
 -    Msg *msg;
 -    size_t len;
 -    int ret;
+-
+-    msg = riemann_value_list_to_protobuf (host, ds, vl, statuses);
+-    if (msg == NULL)
+-        return -1;
++static int wrr_batch_add_value_list(struct riemann_host *host, /* {{{ */
++				    data_set_t const *ds,
++				    value_list_t const *vl,
++				    int *statuses)
++{
 +	riemann_message_t *msg;
 +	size_t len;
 +	int ret;
  
--    msg = riemann_value_list_to_protobuf (host, ds, vl, statuses);
--    if (msg == NULL)
--        return -1;
-+	msg = wrr_value_list_to_message(host, ds, vl, statuses);
-+	if (msg == NULL)
-+		return -1;
- 
 -    pthread_mutex_lock(&host->lock);
-+	pthread_mutex_lock(&host->lock);
- 
+-
 -    if (host->batch_msg == NULL) {
 -        host->batch_msg = msg;
 -    } else {
@@ -1079,31 +1073,32 @@ index 59a3006..abf67b2 100644
 -            return -1;
 -        }
 -        host->batch_msg->events = events;
-+	if (host->batch_msg == NULL) {
-+		host->batch_msg = msg;
-+	} else {
-+		int status;
++	msg = wrr_value_list_to_message(host, ds, vl, statuses);
++	if (msg == NULL)
++		return -1;
  
 -        for (i = host->batch_msg->n_events; i < len; i++)
 -            host->batch_msg->events[i] = msg->events[i - host->batch_msg->n_events];
-+		status = riemann_message_append_events_n(host->batch_msg,
-+							 msg->n_events,
-+							 msg->events);
-+		msg->n_events = 0;
-+		msg->events = NULL;
++	pthread_mutex_lock(&host->lock);
  
 -        host->batch_msg->n_events = len;
 -        sfree (msg->events);
 -        msg->n_events = 0;
 -        sfree (msg);
 -    }
++	if (host->batch_msg == NULL) {
++		host->batch_msg = msg;
++	} else {
++		int status;
++
++		status = riemann_message_append_events_n(host->batch_msg,
++							 msg->n_events,
++							 msg->events);
++		msg->n_events = 0;
++		msg->events = NULL;
++
 +		riemann_message_free(msg);
- 
--	len = msg__get_packed_size(host->batch_msg);
--    ret = 0;
--    if (len >= host->batch_max) {
--        ret = riemann_batch_flush_nolock(0, host);
--    }
++
 +		if (status != 0) {
 +			pthread_mutex_unlock(&host->lock);
 +			ERROR("write_riemann plugin: out of memory");
@@ -1111,20 +1106,25 @@ index 59a3006..abf67b2 100644
 +		}
 +	}
  
--    pthread_mutex_unlock(&host->lock);
--    return ret;
--} /* }}} Msg *riemann_batch_add_value_list */
+-	len = msg__get_packed_size(host->batch_msg);
+-    ret = 0;
+-    if (len >= host->batch_max) {
+-        ret = riemann_batch_flush_nolock(0, host);
+-    }
 +	len = protobuf_c_message_get_packed_size((const ProtobufCMessage*)(host->batch_msg));
 +	ret = 0;
 +	if ((host->batch_max < 0) || (((size_t) host->batch_max) <= len)) {
 +		ret = wrr_batch_flush_nolock(0, host);
 +	}
  
--static int riemann_notification(const notification_t *n, user_data_t *ud) /* {{{ */
+-    pthread_mutex_unlock(&host->lock);
+-    return ret;
+-} /* }}} Msg *riemann_batch_add_value_list */
 +	pthread_mutex_unlock(&host->lock);
 +	return ret;
 +} /* }}} riemann_message_t *wrr_batch_add_value_list */
-+
+ 
+-static int riemann_notification(const notification_t *n, user_data_t *ud) /* {{{ */
 +static int wrr_notification(const notification_t *n, user_data_t *ud) /* {{{ */
  {
  	int			 status;
@@ -1134,7 +1134,7 @@ index 59a3006..abf67b2 100644
  
  	if (!host->notifications)
  		return 0;
-@@ -758,322 +566,352 @@ static int riemann_notification(const notification_t *n, user_data_t *ud) /* {{{
+@@ -758,322 +566,352 @@ static int riemann_notification(const no
      /*
       * Never batch for notifications, send them ASAP
       */
@@ -1169,18 +1169,14 @@ index 59a3006..abf67b2 100644
 -
 -	if (host->check_thresholds)
 -		write_riemann_threshold_check(ds, vl, statuses);
--
--    if (host->use_tcp == 1 && host->batch_mode) {
 +	riemann_message_t	*msg;
  
+-    if (host->use_tcp == 1 && host->batch_mode) {
+-
 -        riemann_batch_add_value_list (host, ds, vl, statuses);
 -
 -
 -    } else {
--
--        msg = riemann_value_list_to_protobuf (host, ds, vl, statuses);
--        if (msg == NULL)
--            return (-1);
 +	if (host->check_thresholds) {
 +		status = write_riemann_threshold_check(ds, vl, statuses);
 +    if (status != 0)
@@ -1196,6 +1192,10 @@ index 59a3006..abf67b2 100644
 +    if (msg == NULL)
 +      return (-1);
  
+-        msg = riemann_value_list_to_protobuf (host, ds, vl, statuses);
+-        if (msg == NULL)
+-            return (-1);
+-
 -        status = riemann_send (host, msg);
 -        if (status != 0)
 -            ERROR ("write_riemann plugin: riemann_send failed with status %i",
@@ -1218,43 +1218,32 @@ index 59a3006..abf67b2 100644
 +static void wrr_free(void *p) /* {{{ */
  {
 -	struct riemann_host	*host = p;
-+  struct riemann_host	*host = p;
- 
+-
 -	if (host == NULL)
 -		return;
-+  if (host == NULL)
-+    return;
- 
+-
 -	pthread_mutex_lock (&host->lock);
-+  pthread_mutex_lock(&host->lock);
- 
+-
 -	host->reference_count--;
 -	if (host->reference_count > 0)
 -	{
 -		pthread_mutex_unlock (&host->lock);
 -		return;
 -	}
-+  host->reference_count--;
-+  if (host->reference_count > 0)
-+    {
-+      pthread_mutex_unlock(&host->lock);
-+      return;
-+    }
++  struct riemann_host	*host = p;
  
 -	riemann_disconnect (host);
-+  wrr_disconnect(host);
++  if (host == NULL)
++    return;
  
 -	sfree(host->service);
 -	pthread_mutex_destroy (&host->lock);
 -	sfree(host);
 -} /* }}} void riemann_free */
-+  pthread_mutex_destroy(&host->lock);
-+  sfree(host);
-+} /* }}} void wrr_free */
++  pthread_mutex_lock(&host->lock);
  
 -static int riemann_config_node(oconfig_item_t *ci) /* {{{ */
-+static int wrr_config_node(oconfig_item_t *ci) /* {{{ */
- {
+-{
 -	struct riemann_host	*host = NULL;
 -	int			 status = 0;
 -	int			 i;
@@ -1338,7 +1327,13 @@ index 59a3006..abf67b2 100644
 -						"status %i.", status);
 -				break;
 -			}
--
++  host->reference_count--;
++  if (host->reference_count > 0)
++    {
++      pthread_mutex_unlock(&host->lock);
++      return;
++    }
+ 
 -			if (strcasecmp ("UDP", tmp) == 0)
 -				host->use_tcp = 0;
 -			else if (strcasecmp ("TCP", tmp) == 0)
@@ -1394,15 +1389,18 @@ index 59a3006..abf67b2 100644
 -		riemann_free (host);
 -		return status;
 -	}
--
++  wrr_disconnect(host);
+ 
 -	ssnprintf (callback_name, sizeof (callback_name), "write_riemann/%s",
 -			host->name);
 -	ud.data = host;
 -	ud.free_func = riemann_free;
--
--	pthread_mutex_lock (&host->lock);
--
--	status = plugin_register_write (callback_name, riemann_write, &ud);
++  pthread_mutex_destroy(&host->lock);
++  sfree(host);
++} /* }}} void wrr_free */
++
++static int wrr_config_node(oconfig_item_t *ci) /* {{{ */
++{
 +  struct riemann_host	*host = NULL;
 +  int			 status = 0;
 +  int			 i;
@@ -1435,7 +1433,8 @@ index 59a3006..abf67b2 100644
 +    wrr_free(host);
 +    return -1;
 +  }
-+
+ 
+-	pthread_mutex_lock (&host->lock);
 +  for (i = 0; i < ci->children_num; i++) {
 +    /*
 +     * The code here could be simplified but makes room
@@ -1443,7 +1442,8 @@ index 59a3006..abf67b2 100644
 +     */
 +    child = &ci->children[i];
 +    status = 0;
-+
+ 
+-	status = plugin_register_write (callback_name, riemann_write, &ud);
 +    if (strcasecmp("Host", child->key) == 0) {
 +      status = cf_util_get_string(child, &host->node);
 +      if (status != 0)
@@ -1569,13 +1569,27 @@ index 59a3006..abf67b2 100644
 +    } else {
 +      WARNING("write_riemann plugin: ignoring unknown config "
 +              "option: \"%s\"", child->key);
-+    }
+     }
+-	if (status != 0)
+-		WARNING ("write_riemann plugin: plugin_register_write (\"%s\") "
+-				"failed with status %i.",
+-				callback_name, status);
+-	else /* success */
+-		host->reference_count++;
 +  }
 +  if (status != 0) {
 +    wrr_free(host);
 +    return status;
 +  }
-+
+ 
+-	status = plugin_register_notification (callback_name,
+-			riemann_notification, &ud);
+-	if (status != 0)
+-		WARNING ("write_riemann plugin: plugin_register_notification (\"%s\") "
+-				"failed with status %i.",
+-				callback_name, status);
+-	else /* success */
+-		host->reference_count++;
 +  ssnprintf(callback_name, sizeof(callback_name), "write_riemann/%s",
 +            host->name);
 +  ud.data = host;
@@ -1614,22 +1628,7 @@ index 59a3006..abf67b2 100644
 +      pthread_mutex_unlock(&host->lock);
 +      wrr_free(host);
 +      return (-1);
-     }
--	if (status != 0)
--		WARNING ("write_riemann plugin: plugin_register_write (\"%s\") "
--				"failed with status %i.",
--				callback_name, status);
--	else /* success */
--		host->reference_count++;
--
--	status = plugin_register_notification (callback_name,
--			riemann_notification, &ud);
--	if (status != 0)
--		WARNING ("write_riemann plugin: plugin_register_notification (\"%s\") "
--				"failed with status %i.",
--				callback_name, status);
--	else /* success */
--		host->reference_count++;
++    }
  
 -	if (host->reference_count <= 1)
 -	{
@@ -1769,6 +1768,3 @@ index 59a3006..abf67b2 100644
  }
  
  /* vim: set sw=8 sts=8 ts=8 noet : */
--- 
-2.8.0
-
