@@ -1,8 +1,9 @@
-collectd (5.5.2-0~precise0+exo2) UNRELEASED; urgency=medium
+collectd (5.5.2-0~precise0+exo2) precise; urgency=medium
 
   * Ensure that collectd/collectd-core packages are in sync.
+  * Add a patch (from upstream) for curl_json segfault.
 
- -- Vincent Bernat <bernat@debian.org>  Fri, 19 Aug 2016 07:47:09 +0200
+ -- Vincent Bernat <bernat@debian.org>  Tue, 13 Sep 2016 10:53:12 +0200
 
 collectd (5.5.2-0~precise0+exo1) precise; urgency=medium
 
