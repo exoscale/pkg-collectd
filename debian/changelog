@@ -1,3 +1,9 @@
+collectd (5.5.2-0~precise0+exo3) precise; urgency=medium
+
+  * Add filecount plugin
+
+ -- Marc-Aurèle Brothier <m@brothier.org>  Thu, 15 Sep 2016 10:18:12 +0200
+
 collectd (5.5.2-0~precise0+exo2) precise; urgency=medium
 
   * Ensure that collectd/collectd-core packages are in sync.
