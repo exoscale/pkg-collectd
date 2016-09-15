@@ -1,8 +1,14 @@
-collectd (5.5.2-0~xenial0+exo2) xenial; urgency=medium
+collectd (5.5.2-0~xenial0+exo3) xenial; urgency=medium
 
   * Forward-port to Xenial.
 
- -- Vincent Bernat <bernat@debian.org>  Tue, 13 Sep 2016 10:58:08 +0200
+ -- Marc-Aurèle Brothier <m@brothier.org>  Thu, 15 Sep 2016 10:28:12 +0200
+
+collectd (5.5.2-0~precise0+exo3) precise; urgency=medium
+
+  * Add filecount plugin
+
+ -- Marc-Aurèle Brothier <m@brothier.org>  Thu, 15 Sep 2016 10:18:12 +0200
 
 collectd (5.5.2-0~precise0+exo2) precise; urgency=medium
 
