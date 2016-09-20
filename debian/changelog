@@ -1,3 +1,9 @@
+collectd (5.5.2-0~precise0+exo4) precise; urgency=medium
+
+  * Add general database statistics
+
+ -- Marc-Aurèle Brothier <m@brothier.org>  Tue, 20 Sep 2016 12:04:12 +0200
+
 collectd (5.5.2-0~precise0+exo3) precise; urgency=medium
 
   * Add filecount plugin
