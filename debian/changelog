@@ -1,8 +1,14 @@
-collectd (5.5.2-0~xenial0+exo4) xenial; urgency=medium
+collectd (5.5.2-0~xenial0+exo5) xenial; urgency=medium
 
   * Forward-port to Xenial.
 
- -- Marc-Aurèle Brothier <m@brothier.org>  Tue, 20 Sep 2016 12:08:12 +0200
+ -- Vincent Bernat <bernat@debian.org>  Fri, 23 Sep 2016 16:59:23 +0200
+
+collectd (5.5.2-0~precise0+exo5) precise; urgency=medium
+
+  * Add dns plugin.
+
+ -- Vincent Bernat <bernat@debian.org>  Fri, 23 Sep 2016 15:02:11 +0200
 
 collectd (5.5.2-0~precise0+exo4) precise; urgency=medium
 
