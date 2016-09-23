@@ -1,3 +1,9 @@
+collectd (5.5.2-0~precise0+exo5) precise; urgency=medium
+
+  * Add dns plugin.
+
+ -- Vincent Bernat <bernat@debian.org>  Fri, 23 Sep 2016 15:02:11 +0200
+
 collectd (5.5.2-0~precise0+exo4) precise; urgency=medium
 
   * Add general database statistics
