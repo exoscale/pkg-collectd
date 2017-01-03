@@ -1,3 +1,9 @@
+collectd (5.5.2-0~precise0+exo4) precise; urgency=medium
+
+  * Add tail plugin
+
+ -- Marc-Aurèle Brothier <m@brothier.org>  Tue, 03 Jan 2017 10:04:12 +0100
+
 collectd (5.5.2-0~precise0+exo5) precise; urgency=medium
 
   * Add dns plugin.
