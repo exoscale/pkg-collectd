@@ -1,8 +1,8 @@
-collectd (5.7.1-0~xenial0+exo2) xenial; urgency=medium
+collectd (5.5.2-0~xenial0+exo7) xenial; urgency=medium
 
   * Forward-port to Xenial.
 
- -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 09:58:04 +0200
+ -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 16:49:49 +0200
 
 collectd (5.5.2-0~precise0+exo7) precise; urgency=medium
 
