@@ -1,3 +1,9 @@
+collectd (5.5.2-0~precise0+exo7) precise; urgency=medium
+
+  * Increase DATA_MAX_NAME_LEN from 64 to 256.
+
+ -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 16:41:40 +0200
+
 collectd (5.5.2-0~precise0+exo6) precise; urgency=medium
 
   * Add CSV plugin.
