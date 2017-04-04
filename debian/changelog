@@ -1,3 +1,9 @@
+collectd (5.7.1-0~precise0+exo2) precise; urgency=medium
+
+  * Configure with data-max-name-len=256 (instead of 128).
+
+ -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 09:56:28 +0200
+
 collectd (5.7.1-0~precise0+exo1) precise; urgency=medium
 
   * New upstream release.
