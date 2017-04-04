@@ -1,8 +1,24 @@
-collectd (5.5.2-0~xenial0+exo5) xenial; urgency=medium
+collectd (5.7.1-0~xenial0+exo1) xenial; urgency=medium
 
   * Forward-port to Xenial.
 
- -- Vincent Bernat <bernat@debian.org>  Fri, 23 Sep 2016 16:59:23 +0200
+ -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 08:52:15 +0200
+
+collectd (5.7.1-0~precise0+exo1) precise; urgency=medium
+
+  * New upstream release.
+    + Drop SNMP patch. Applied upstream.
+    + Drop Riemann patches. Applied upstream.
+    + Drop Kafka patches. Applied upstream.
+    + Drop curl_json patch. Applied upstream.
+
+ -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 08:42:21 +0200
+
+collectd (5.5.2-0~precise0+exo6) precise; urgency=medium
+
+  * Add CSV plugin.
+
+ -- Vincent Bernat <bernat@debian.org>  Wed, 11 Jan 2017 08:07:58 +0100
 
 collectd (5.5.2-0~precise0+exo5) precise; urgency=medium
 

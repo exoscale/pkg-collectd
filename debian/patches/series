@@ -1,14 +1,1 @@
 collection_conf_path.patch
-0001-snmp-accept-to-use-IpAddress-for-instances.patch
-0001-write_riemann-plugin-malloc-memset-calloc.patch
-0003-write_riemann-Use-riemann-c-client.patch
-0004-write_riemann-Use-riemann-c-client-1.6.0.patch
-0005-write_riemann-Add-support-for-timeouts.patch
-0006-write_riemann-rate-limit-logs-and-avoid-deadlocks.patch
-0007-write_riemann-kill-old-protobuf-files.patch
-0008-write_riemann-add-a-BatchFlushTimeout-option.patch
-0009-write_riemann-do-not-deadlock-when-sending-from-flus.patch
-0010-write_riemann-do-not-read-responses-twice.patch
-0011-write_kafka-do-not-call-depreciated-functions-unless.patch
-0001-write_kafka-ensure-key-is-properly-hashed-to-select-.patch
-ba52f94929822b1968f05cfbb37985af2e0b83a4.patch
