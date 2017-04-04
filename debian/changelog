@@ -1,3 +1,13 @@
+collectd (5.7.1-0~precise0+exo1) precise; urgency=medium
+
+  * New upstream release.
+    + Drop SNMP patch. Applied upstream.
+    + Drop Riemann patches. Applied upstream.
+    + Drop Kafka patches. Applied upstream.
+    + Drop curl_json patch. Applied upstream.
+
+ -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 08:42:21 +0200
+
 collectd (5.5.2-0~precise0+exo6) precise; urgency=medium
 
   * Add CSV plugin.
