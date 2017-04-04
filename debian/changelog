@@ -4,21 +4,11 @@ collectd (5.7.1-0~xenial0+exo2) xenial; urgency=medium
 
  -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 09:58:04 +0200
 
-collectd (5.7.1-0~precise0+exo2) precise; urgency=medium
+collectd (5.5.2-0~precise0+exo7) precise; urgency=medium
 
-  * Configure with data-max-name-len=256 (instead of 128).
+  * Increase DATA_MAX_NAME_LEN from 64 to 256.
 
- -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 09:56:28 +0200
-
-collectd (5.7.1-0~precise0+exo1) precise; urgency=medium
-
-  * New upstream release.
-    + Drop SNMP patch. Applied upstream.
-    + Drop Riemann patches. Applied upstream.
-    + Drop Kafka patches. Applied upstream.
-    + Drop curl_json patch. Applied upstream.
-
- -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 08:42:21 +0200
+ -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 16:41:40 +0200
 
 collectd (5.5.2-0~precise0+exo6) precise; urgency=medium
 
