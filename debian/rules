@@ -162,7 +162,7 @@ confflags += --enable-java # Embed the Java Virtual Machine
 confflags += --with-java=/usr/lib/jvm/default-java
 
 %:
-	dh $@ --with autoreconf
+	dh $@ --with autoreconf,systemd
 
 override_dh_auto_configure:
 	# This is a work-around for #474087 (broken openipmi .pc files).
