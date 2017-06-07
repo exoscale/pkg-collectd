@@ -3,6 +3,7 @@ Description=Collectd statistics daemon
 Documentation=man:collectd(1) man:collectd.conf(5)
 After=local-fs.target network-online.target
 Requires=local-fs.target network-online.target
+ConditionPathExists=/etc/collectd/collectd.conf
 
 [Service]
 ExecStart=/usr/sbin/collectd
