@@ -1,3 +1,9 @@
+collectd (5.5.2-0~xenial0+exo11) xenial; urgency=medium
+
+  * Enable sensors plugin.
+
+ -- Vincent Bernat <bernat@debian.org>  Fri, 14 Jul 2017 08:14:30 +0200
+
 collectd (5.5.2-0~xenial0+exo10) xenial; urgency=medium
 
   * Don't start collectd if there is no configuration file.
