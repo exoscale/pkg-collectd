@@ -1,3 +1,9 @@
+collectd (5.5.2-0~precise0+exo9) precise; urgency=medium
+
+  * Make "UseLabels" directive available for sensors plugin.
+
+ -- Vincent Bernat <bernat@debian.org>  Fri, 14 Jul 2017 14:14:24 +0200
+
 collectd (5.5.2-0~precise0+exo8) precise; urgency=medium
 
   * Enable sensors plugin.
