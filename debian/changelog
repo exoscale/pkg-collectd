@@ -1,8 +1,14 @@
-collectd (5.5.2-0~bpo8+0+exo11) jessie-backports; urgency=medium
+collectd (5.5.2-0~bpo8+0+exo21) jessie-backports; urgency=medium
 
   * Cross-port to Jessie.
 
- -- Vincent Bernat <bernat@debian.org>  Fri, 14 Jul 2017 08:15:42 +0200
+ -- Vincent Bernat <bernat@debian.org>  Fri, 14 Jul 2017 14:17:51 +0200
+
+collectd (5.5.2-0~xenial0+exo12) xenial; urgency=medium
+
+  * Make "UseLabels" directive available for sensors plugin.
+
+ -- Vincent Bernat <bernat@debian.org>  Fri, 14 Jul 2017 14:14:24 +0200
 
 collectd (5.5.2-0~xenial0+exo11) xenial; urgency=medium
 
