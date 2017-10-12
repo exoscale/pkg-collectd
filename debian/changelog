@@ -1,3 +1,16 @@
+collectd (5.7.2-0~xenial0+exo1) xenial; urgency=medium
+
+  * New upstream release.
+    + Drop Riemann patches. Applied upstream.
+    + Drop Kafka patches. Applied upstream.
+    + Drop curl_json patch. Applied upstream.
+    + Drop SNMP IP address patch. Applied upstream.
+    + Drop sensor patch. Applied upstream.
+    + Drop data max name len patch. Use ./configure option instead.
+    + Refresh SNMP double-free patch.
+
+ -- Vincent Bernat <bernat@debian.org>  Thu, 12 Oct 2017 15:21:31 +0200
+
 collectd (5.5.2-0~xenial0+exo13) xenial; urgency=medium
 
   * Add a patch to fix double-free in SNMP.
