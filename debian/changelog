@@ -1,3 +1,9 @@
+collectd (5.5.2-0~xenial0+exo13) xenial; urgency=medium
+
+  * Add a patch to fix double-free in SNMP.
+
+ -- Vincent Bernat <bernat@debian.org>  Thu, 12 Oct 2017 14:22:35 +0200
+
 collectd (5.5.2-0~xenial0+exo12) xenial; urgency=medium
 
   * Make "UseLabels" directive available for sensors plugin.

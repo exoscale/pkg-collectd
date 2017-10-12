@@ -1,0 +1,56 @@
+From 0457520d4bda913baf87cb04f4dbce3a6569ede3 Mon Sep 17 00:00:00 2001
+From: Pavel Rochnyack <pavel2000@ngs.ru>
+Date: Wed, 31 May 2017 23:27:13 +0700
+Subject: [PATCH] snmp plugin: Fix double free of request PDU
+
+snmp_sess_synch_response() always frees request PDU, in both case of request
+error and success. If error condition occurs inside of `while (status == 0)`
+loop, double free of `req` happens.
+
+Issue: #2291
+Signed-off-by: Florian Forster <octo@collectd.org>
+---
+ src/snmp.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/src/snmp.c b/src/snmp.c
+index ae41d03ae856..aba679fa244c 100644
+--- a/src/snmp.c
++++ b/src/snmp.c
+@@ -1481,11 +1481,13 @@ static int csnmp_read_table (host_definition_t *host, data_definition_t *data)
+     {
+       /* The request is still empty - so we are finished */
+       DEBUG ("snmp plugin: all variables have left their subtree");
++      snmp_free_pdu (req);
+       status = 0;
+       break;
+     }
+ 
+     res = NULL;
++    /* snmp_sess_synch_response always frees our req PDU */
+     status = snmp_sess_synch_response (host->sess_handle, req, &res);
+     if ((status != STAT_SUCCESS) || (res == NULL))
+     {
+@@ -1501,8 +1503,6 @@ static int csnmp_read_table (host_definition_t *host, data_definition_t *data)
+         snmp_free_pdu (res);
+       res = NULL;
+ 
+-      /* snmp_synch_response already freed our PDU */
+-      req = NULL;
+       sfree (errstr);
+       csnmp_host_close_session (host);
+ 
+@@ -1625,10 +1625,6 @@ static int csnmp_read_table (host_definition_t *host, data_definition_t *data)
+     snmp_free_pdu (res);
+   res = NULL;
+ 
+-  if (req != NULL)
+-    snmp_free_pdu (req);
+-  req = NULL;
+-
+   if (status == 0)
+     csnmp_dispatch_table (host, data, instance_list_head, value_list_head);
+ 
+-- 
+2.15.0.rc0
+
