@@ -1,3 +1,9 @@
+collectd (5.5.2-0~precise0+exo10) precise; urgency=medium
+
+  * Add patch to remove librdkafka deprecated function.
+
+ -- Vincent Bernat <bernat@debian.org>  Fri, 15 Dec 2017 16:27:51 +0100
+
 collectd (5.5.2-0~precise0+exo9) precise; urgency=medium
 
   * Make "UseLabels" directive available for sensors plugin.

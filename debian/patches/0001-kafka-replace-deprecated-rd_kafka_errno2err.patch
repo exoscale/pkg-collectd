@@ -1,0 +1,25 @@
+From 815802f175e85792c8e763e766f183b721496964 Mon Sep 17 00:00:00 2001
+From: Vincent Bernat <vincent@bernat.im>
+Date: Fri, 15 Dec 2017 16:17:48 +0100
+Subject: [PATCH] kafka: replace deprecated rd_kafka_errno2err
+
+rd_kafka_errno2err() is depecrated in recent versions of
+librdkafka. We replace it by rd_kafka_lasterror() which was introduced
+in librdkafka 0.9.1 (available from Ubuntu Zesty and Debian Stretch).
+---
+ src/write_kafka.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: collectd-5.5.2/src/write_kafka.c
+===================================================================
+--- collectd-5.5.2.orig/src/write_kafka.c
++++ collectd-5.5.2/src/write_kafka.c
+@@ -137,7 +137,7 @@ static int kafka_handle(struct kafka_top
+         if ((ctx->topic = rd_kafka_topic_new(ctx->kafka, ctx->topic_name,
+                                             topic_conf)) == NULL) {
+             ERROR("write_kafka plugin: cannot create topic : %s\n",
+-            rd_kafka_err2str(rd_kafka_errno2err(errno)));
++            rd_kafka_err2str(rd_kafka_last_error()));
+             return errno;
+         }
+ 
