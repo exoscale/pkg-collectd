@@ -1,2 +1,3 @@
 collection_conf_path.patch
 0001-snmp-plugin-Fix-double-free-of-request-PDU.patch
+0001-kafka-replace-deprecated-rd_kafka_errno2err.patch
