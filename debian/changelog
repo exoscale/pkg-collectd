@@ -1,3 +1,9 @@
+collectd (5.5.2-0~bpo8+0+exo22) jessie-backports; urgency=medium
+
+  * Add patch to remove librdkafka deprecated function.
+
+ -- Vincent Bernat <bernat@debian.org>  Fri, 15 Dec 2017 16:27:51 +0100
+
 collectd (5.5.2-0~bpo8+0+exo21) jessie-backports; urgency=medium
 
   * Cross-port to Jessie.
@@ -39,12 +45,6 @@ collectd (5.5.2-0~xenial0+exo7) xenial; urgency=medium
   * Forward-port to Xenial.
 
  -- Vincent Bernat <bernat@debian.org>  Tue, 04 Apr 2017 16:49:49 +0200
-
-collectd (5.5.2-0~precise0+exo10) precise; urgency=medium
-
-  * Add patch to remove librdkafka deprecated function.
-
- -- Vincent Bernat <bernat@debian.org>  Fri, 15 Dec 2017 16:27:51 +0100
 
 collectd (5.5.2-0~precise0+exo7) precise; urgency=medium
 
