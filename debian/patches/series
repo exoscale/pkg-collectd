@@ -11,6 +11,7 @@ collection_conf_path.patch
 0010-write_riemann-do-not-read-responses-twice.patch
 0011-write_kafka-do-not-call-depreciated-functions-unless.patch
 0001-write_kafka-ensure-key-is-properly-hashed-to-select-.patch
+0001-kafka-replace-deprecated-rd_kafka_errno2err.patch
 ba52f94929822b1968f05cfbb37985af2e0b83a4.patch
 increase-data-name-max-len.patch
 0001-sensors-Report-sensor-readings-by-descriptive-labels.patch
