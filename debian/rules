@@ -21,7 +21,8 @@ confflags = --host=$(DEB_HOST_GNU_TYPE) \
 		--without-libstatgrab \
 		--without-included-ltdl \
 		--disable-static \
-		--disable-all-plugins
+		--disable-all-plugins \
+		--with-data-max-name-len=256
 
 confflags += --enable-aggregation # Aggregation plugin
 # confflags += --enable-amqp # AMQP output plugin

@@ -1,3 +1,17 @@
+collectd (5.7.2-0~jessie0+exo1) xenial; urgency=medium
+
+  * New upstream release.
+    + Drop Riemann patches. Applied upstream.
+    + Drop Kafka patches. Applied upstream.
+    + Drop curl_json patch. Applied upstream.
+    + Drop SNMP IP address patch. Applied upstream.
+    + Drop sensor patch. Applied upstream.
+    + Drop data max name len patch. Use ./configure option instead.
+    + Refresh SNMP double-free patch.
+    + Add patch to remove librdkafka deprecated function.
+
+ -- Jean-Philippe Menil <jpmenil@exoscale.ch>  Wed, 16 Jan 2019 10:44:00 +0200
+
 collectd (5.5.2-0~bpo8+0+exo22) jessie-backports; urgency=medium
 
   * Add patch to remove librdkafka deprecated function.

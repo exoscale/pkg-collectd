@@ -10,16 +10,16 @@ in librdkafka 0.9.1 (available from Ubuntu Zesty and Debian Stretch).
  src/write_kafka.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Index: collectd-5.5.2/src/write_kafka.c
+Index: collectd-5.7.2/src/write_kafka.c
 ===================================================================
---- collectd-5.5.2.orig/src/write_kafka.c
-+++ collectd-5.5.2/src/write_kafka.c
-@@ -137,7 +137,7 @@ static int kafka_handle(struct kafka_top
-         if ((ctx->topic = rd_kafka_topic_new(ctx->kafka, ctx->topic_name,
-                                             topic_conf)) == NULL) {
-             ERROR("write_kafka plugin: cannot create topic : %s\n",
+--- collectd-5.7.2.orig/src/write_kafka.c
++++ collectd-5.7.2/src/write_kafka.c
+@@ -147,7 +147,7 @@ static int kafka_handle(struct kafka_top
+     if ((ctx->topic = rd_kafka_topic_new(ctx->kafka, ctx->topic_name,
+                                          topic_conf)) == NULL) {
+       ERROR("write_kafka plugin: cannot create topic : %s\n",
 -            rd_kafka_err2str(rd_kafka_errno2err(errno)));
 +            rd_kafka_err2str(rd_kafka_last_error()));
-             return errno;
-         }
+       return errno;
+     }
  
