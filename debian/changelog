@@ -1,3 +1,9 @@
+collectd (5.7.2-0~xenial0+exo3) xenial; urgency=medium
+
+  * Enable write_http plugin
+
+ -- Jessica Toscani <jessica@exoscale.ch>  Thu, 23 Jan 2020 10:04:10 +0100
+
 collectd (5.7.2-0~xenial0+exo2) xenial; urgency=medium
 
   * Add patch to remove librdkafka deprecated function.
