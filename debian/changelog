@@ -1,5 +1,11 @@
 collectd (5.7.2-0~xenial0+exo3) xenial; urgency=medium
 
+  * Enable fix format
+
+ -- Jorge Espada <jorge@exoscale.ch>  Thu, 23 Jan 2020 14:03:10 +0000
+
+collectd (5.7.2-0~xenial0+exo3) xenial; urgency=medium
+
   * Enable write_http plugin
 
  -- Jessica Toscani <jessica@exoscale.ch>  Thu, 23 Jan 2020 10:04:11 +0100
