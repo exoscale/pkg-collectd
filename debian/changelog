@@ -1,3 +1,9 @@
+collectd (5.7.2-0~xenial0+exo3) xenial; urgency=medium
+
+  * Enable write_http plugin
+
+ -- Jorge Espada <jorge@exoscale.ch>  Thu, 23 Jan 2020 12:45:10 +0000
+
 collectd (5.7.2-0~jessie0+exo1) xenial; urgency=medium
 
   * New upstream release.
