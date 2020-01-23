@@ -1,4 +1,4 @@
-collectd (5.7.2-0~xenial0+exo3) xenial; urgency=medium
+collectd (5.7.2-0~xenial0+exo4) xenial; urgency=medium
 
   * Enable fix format
 
