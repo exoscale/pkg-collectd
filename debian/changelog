@@ -1,3 +1,9 @@
+collectd (5.11.0-2~exo1) UNRELEASED; urgency=medium
+
+  * Backport for Ubuntu Focal
+
+ -- Alexandros Afentoulis <alexandros.afentoulis@exoscale.ch>  Mon, 08 Jun 2020 14:22:31 +0300
+
 collectd (5.11.0-2) unstable; urgency=medium
 
   * [735fbed] Disable intel-only features on !intel platforms
