@@ -1,2 +1,2 @@
-usr/lib/*/libcollectdclient.so.*
+usr/lib/libcollectdclient.so.*
 

@@ -1,16 +1,15 @@
+Author: Sebastian Harl <sh@tokkee.org>
 Description: Set the path of collection.conf to /etc/collectd/.
-
-diff a/contrib/collection.cgi b/contrib/collection.cgi
-Index: collectd-5.5.1/contrib/collection.cgi
+Index: collectd/contrib/collection.cgi
 ===================================================================
---- collectd-5.5.1.orig/contrib/collection.cgi
-+++ collectd-5.5.1/contrib/collection.cgi
+--- collectd.orig/contrib/collection.cgi
++++ collectd/contrib/collection.cgi
 @@ -32,7 +32,7 @@ use URI::Escape ('uri_escape');
  use RRDs ();
  use Data::Dumper ();
  
 -our $Config = "/etc/collection.conf";
 +our $Config = "/etc/collectd/collection.conf";
+ our $TypesDB = "/usr/share/collectd/types.db";
  our @DataDirs = ();
  our @DontShowTypes = ();
- our $LibDir;
