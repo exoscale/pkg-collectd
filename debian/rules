@@ -333,7 +333,7 @@ binary-indep: install-indep
 	dh_installdeb -i
 	dh_gencontrol -i
 	dh_md5sums -i
-	dh_builddeb -i
+	dh_builddeb -i -- -Zxz
 
 binary-arch: build install-arch
 	dh_testdir
@@ -380,7 +380,7 @@ binary-arch: build install-arch
 		>> debian/collectd.substvars
 	dh_gencontrol -a
 	dh_md5sums -a
-	dh_builddeb -a
+	dh_builddeb -a -- -Zxz
 
 binary: binary-arch binary-indep
 .PHONY: build build-arch build-indep clean binary-indep binary-arch binary install-indep install-arch
