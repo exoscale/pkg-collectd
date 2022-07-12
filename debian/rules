@@ -37,6 +37,11 @@ endif
 
 LDFLAGS = $(shell dpkg-buildflags --get LDFLAGS)
 
+# grpc workaround
+ifneq (,$(filter $(DEB_HOST_ARCH), armel mips mipsel powerpc))
+  LDFLAGS += -Wl,--no-as-needed -latomic -Wl,--as-needed
+endif
+
 # The archdir map has been copied from openjdk-6's debian/rules.
 JAVA_ARCHDIR = $(shell /usr/share/javahelper/java-arch.sh $(DEB_BUILD_ARCH))
 ifeq (,$(JAVA_ARCHDIR))
@@ -59,6 +64,9 @@ confflags = --host=$(DEB_HOST_GNU_TYPE) \
 			--disable-static \
 			--disable-silent-rules \
 			--enable-all-plugins
+
+# disable tokyotyrant (#980331)
+confflags += --disable-tokyotyrant
 
 # These plugins do not provide any functionality under Linux.
 # MacOS only (requires IO Kit):
@@ -102,16 +110,22 @@ confflags += --disable-slurm
 # Cf. https://github.com/collectd/collectd/issues/1574
 confflags += --disable-sigrok
 
-# disable lvm plugin, liblvm2app is deprecated upstream, #915692
-# Cf. https://github.com/collectd/collectd/issues/2647
-confflags += --disable-lvm
-
 # libnvidia-ml is non-free
 confflags += --disable-gpu_nvidia
 
-# disable nut plugin for now.
-# nut is not in testing, see #937169 #885358
-confflags += --disable-nut
+
+
+# ganglia FTBS, disable it for now
+# see #964399
+confflags += --disable-gmond
+
+
+# owfs ftbfs
+confflags += --disable-onewire
+
+# hddtemp will be remove from debian
+# #1001954
+confflags += --disable-hddtemp
 
 # These plugins are Linux-specific.
 ifeq ($(DEB_HOST_ARCH_OS),kfreebsd)
@@ -138,7 +152,8 @@ endif
 ifneq ($(DEB_HOST_ARCH_OS),kfreebsd)
 	confflags += \
 		--disable-pf \
-		--disable-ipstats
+		--disable-ipstats \
+		--disable-netstat_udp
 endif
 
 
@@ -147,8 +162,6 @@ ifeq (,$(filter $(DEB_HOST_ARCH),amd64 i386))
     confflags += --disable-capabilities
     confflags += --disable-dpdk_telemetry
 endif
-
-
 
 # This plugin is Solaris-specific.
 confflags += \
@@ -182,7 +195,6 @@ ifeq ($(DEB_HOST_ARCH_OS),kfreebsd)
 	confflags += \
 		--disable-gmond \
 		--disable-virt \
-		--disable-tokyotyrant \
 		--disable-java
 endif
 
@@ -223,7 +235,7 @@ ifneq (,$(filter hppa sparc, $(DEB_HOST_ARCH)))
 endif
 
 # gRPC is only available on x86, arm, ppc.
-ifeq (,$(filter amd64 arm64 armel armhf i386 ppc64el powerpc, $(DEB_HOST_ARCH)))
+ifeq (,$(filter amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x, $(DEB_HOST_ARCH)))
 	confflags += --disable-grpc
 endif
 
@@ -236,9 +248,10 @@ build-stamp:
 	
 	dh_autoreconf
 	
-	./configure $(confflags) CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
-		JAVAC="$(JAVAC)" JAR="$(JAR)" JAVA_CPPFLAGS="$(JAVA_CPPFLAGS)" \
-		JAVA_LDFLAGS="$(JAVA_LDFLAGS)" \
+	CXXFLAGS="$(CXXFLAGS)" CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+	JAVAC="$(JAVAC)" JAR="$(JAR)" JAVA_CPPFLAGS="$(JAVA_CPPFLAGS)" \
+	JAVA_LDFLAGS="$(JAVA_LDFLAGS)" \
+	./configure $(confflags) \
 		|| ( status=$$?; cat config.log; exit $$status )
 
 	$(MAKE)
@@ -268,17 +281,24 @@ install-indep:
 	dh_testroot
 	dh_prep
 	dh_installdirs -i
-	dh_install -i
 	
+	set -e ;\
+		find src  -path src/libcollectdclient -prune -o -path src/liboconfig -prune -o -name '*.h'  -print | while read i; do \
+			d=$$(echo "$${i}" | sed 's,^src,debian/tmp/usr/include/collectd/core,') ;\
+			mkdir -p $$(echo "$${i}" | sed -e 's,^src,debian/tmp/usr/include/collectd/core,' -e 's,/[^/]*$$,,') ;\
+			cp "$${i}" "$${d}" ;\
+		done
+
+	dh_install -i
+
 	# update include path for collectd header files
 	(	set -e; \
 		cd $(CURDIR)/debian/collectd-dev/usr/include/collectd/; \
-		for lib in $$(find . -type f -name '*.h'); do \
+		headers=$$(find . -type f -name '*.h'); \
+		for lib in $$headers; do \
 			libname=$$(basename $$lib); \
 			fullpath=$$(echo $$lib | sed -r -e 's,^\./,collectd/,'); \
-			for dir in $$(find . -mindepth 1 -type d); do \
-				sed -r -i -e "s,(include\s+)\".*\<$$libname\",\1\"$$fullpath\"," $$dir/*.h; \
-			done; \
+			sed -r -i -e "s,(include\s+)\".*\<$$libname\",\1\"$$fullpath\"," $$headers; \
 		done )
 
 install-arch: build
@@ -292,9 +312,9 @@ install-arch: build
 	rm -f debian/tmp/usr/lib/collectd/*.la
 	rm -f debian/tmp/usr/lib/libcollectdclient.la
 	rm -f debian/tmp/etc/collectd.conf
-	
+
 	dh_install -a --sourcedir=$(CURDIR)/debian/tmp --fail-missing
-	
+
 	perl ./debian/bin/gen_plugin_deps.pl
 	
 	mkdir -p debian/collectd-core/usr/share/lintian/overrides/
@@ -364,4 +384,3 @@ binary-arch: build install-arch
 
 binary: binary-arch binary-indep
 .PHONY: build build-arch build-indep clean binary-indep binary-arch binary install-indep install-arch
-

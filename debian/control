@@ -18,11 +18,10 @@ Build-Depends: debhelper-compat (= 10), dpkg-dev (>= 1.14.10), po-debconf, dh-st
  libdbi0-dev,
  libdpdk-dev [amd64 i386],
  libesmtp-dev,
- libganglia1-dev (>= 3) [linux-any],
  libgeom-dev [kfreebsd-any],
  libgcrypt20-dev,
  libglib2.0-dev,
- libgrpc++-dev [amd64 arm64 armel armhf i386 ppc64el powerpc],
+ libgrpc++-dev [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x],
  libgps-dev,
  libhiredis-dev,
  libi2c-dev (>= 4.0~),
@@ -37,7 +36,6 @@ Build-Depends: debhelper-compat (= 10), dpkg-dev (>= 1.14.10), po-debconf, dh-st
  libnotify-dev,
  libopenipmi-dev,
  liboping-dev (>= 0.3.3),
- libow-dev,
  libpcap0.8-dev | libpcap-dev,
  libperl-dev,
  libpq-dev,
@@ -48,12 +46,10 @@ Build-Depends: debhelper-compat (= 10), dpkg-dev (>= 1.14.10), po-debconf, dh-st
  libriemann-client-dev (>= 1.6.0),
  librrd-dev (>= 1.4~),
  libsensors-dev [linux-any],
-# libsnmp-dev (>= 5.4.2.1~dfsg-4~) | (libsnmp-dev & perl (<< 5.10.1~rc2-1~))
  libsnmp-dev (>= 5.4.2.1~dfsg-4~) | libsnmp-dev | libsnmp9-dev,
  libsnmp-dev (>= 5.4.2.1~dfsg-4~) | perl (<< 5.10.1~rc2-1~),
- libtokyocabinet-dev [linux-any],
- libtokyotyrant-dev [linux-any],
  libudev-dev [linux-any],
+ libupsclient-dev | libupsclient1-dev,
  libvarnishapi-dev,
  libvirt-dev (>= 0.4.0-6) [linux-any],
  libxen-dev [amd64 arm64 armhf i386],
@@ -63,7 +59,7 @@ Build-Depends: debhelper-compat (= 10), dpkg-dev (>= 1.14.10), po-debconf, dh-st
  default-jdk [!hppa !sparc !kfreebsd-i386 !kfreebsd-amd64],
  protobuf-c-compiler,
  protobuf-compiler (>= 3.0.0),
- protobuf-compiler-grpc [amd64 arm64 armel armhf i386 ppc64el powerpc],
+ protobuf-compiler-grpc [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x],
  python3-dev,
  riemann-c-client,
  libqpid-proton11-dev,
@@ -84,9 +80,9 @@ Suggests: collectd-dev,
  librrds-perl, liburi-perl, libhtml-parser-perl, libregexp-common-perl,
  libconfig-general-perl, httpd-cgi,
 # services providing data that may be collected by collectd
- apache2, apcupsd, bind9, ceph, chrony, default-mysql-server, gpsd, hddtemp,
+ apache2, apcupsd, bind9, ceph, chrony, default-mysql-server, gpsd,
  iptables, ipvsadm, lm-sensors, mbmon, memcached, nginx, notification-daemon,
- openvpn, olsrd, pdns-server, postgresql, redis-server, slapd,
+ nut, openvpn, olsrd, pdns-server, postgresql, redis-server, slapd,
  time-daemon, varnish, zookeeper,
  ${shlibs:Suggests}, default-jre-headless
 Replaces: collectd (<< 4.8.2-1~)
@@ -144,8 +140,6 @@ Description: statistics collection and monitoring daemon (core system)
    * Monitor gps related data through gpsd: gps
    * Send or receive values over the network using the gRPC framework: grpc
    * query data from Java processes using JMX: GenericJMX (Java based plugin)
-   * receive and interpret Ganglia multicast traffic: gmond
-   * harddisk temperature: hddtemp
    * Report the number of used and free hugepages: hugepages
    * Intel Resource Director Technology statistics: intel_rdt
    * network traffic: interface
@@ -178,6 +172,7 @@ Description: statistics collection and monitoring daemon (core system)
    * send notification E-mails: notify_email
    * send notifications to nagios: notify_nagios
    * NTP daemon's local clock drift, offset to peers, etc.: ntpd
+   * UPS information: nut
    * Optimized Link State Routing daemon statistics: olsrd
    * OpenLDAP's cn=Monitor statistics: openldap
    * OpenVPN traffic and compression statistics: openvpn
@@ -213,7 +208,6 @@ Description: statistics collection and monitoring daemon (core system)
    * Linux ACPI thermal zone information: thermal
    * check thresholds and for missing values: threshold
    * statistics from Intel turbo-capable processors: turbostat
-   * Tokyo Tyrant server statistics: tokyotyrant
    * external runtime interface: unixsock
    * system uptime: uptime
    * number of users logged into the system: users
@@ -317,4 +311,3 @@ Description: client library for collectd's control interface
  other applications such as monitoring solutions.
  .
  This package contains the shared library.
-

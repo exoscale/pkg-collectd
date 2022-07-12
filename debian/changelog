@@ -1,8 +1,130 @@
-collectd (5.11.0-2~exo1) UNRELEASED; urgency=medium
+collectd (5.12.0-8) unstable; urgency=medium
 
-  * Backport for Ubuntu Focal
+  [ Kentaro Hayashi ]
+  * [4a69d6e] Fix CGI::param error in collection3
+    ref. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=982294
+    (Closes: #982294)
 
- -- Alexandros Afentoulis <alexandros.afentoulis@exoscale.ch>  Mon, 08 Jun 2020 14:22:31 +0300
+  [ Bernd Zeimetz ]
+  * [c8207fc] Disable onewire until it is in testing again.
+  * [1379323] Drop hddtemp module.
+    hddtemp is going to be removed from the
+    archive.
+    Thanks to Aurelien Jarno (Closes: #1001954)
+  * [5d13bb9] Revert "Disable nut plugin for now."
+    This reverts commit 8846b4564bfca329542c8a2567e46e1b28448094.
+    Thanks to Michał Mirosław (Closes: #989805)
+  * [16b05e2] Update changelog to the version from unstable
+    The 5.12.0-7 upload was actually never pushed to the repository.
+  * [c6b9552] Remove patch~ file that was accidentally added some time ago.
+
+ -- Bernd Zeimetz <bzed@debian.org>  Thu, 20 Jan 2022 15:40:42 +0100
+
+collectd (5.12.0-7) unstable; urgency=medium
+
+  * Team upload.
+  * Fix CGI::param error in collection3 (Closes: 982294)
+
+ -- Kentaro Hayashi <kenhys@xdump.org>  Wed, 14 Jul 2021 21:46:02 +0900
+
+collectd (5.12.0-6) unstable; urgency=medium
+
+  * [b4e7861] collectd-dev: Add missing header files again.
+    Thanks to Benjamin Drung (Closes: #968950)
+  * [3261aa1] Also create necessary directories
+  * [6c0c6be] Fix target location in dh_install
+
+ -- Bernd Zeimetz <bzed@debian.org>  Tue, 01 Jun 2021 17:56:33 +0200
+
+collectd (5.12.0-5) unstable; urgency=medium
+
+  * [11ee08b] Disable tokyotyrant.
+    See #980331 for details
+
+ -- Bernd Zeimetz <bzed@debian.org>  Tue, 26 Jan 2021 10:52:28 +0100
+
+collectd (5.12.0-4) unstable; urgency=medium
+
+  * [b96d62e] Fix test_smart for big-endian.
+    Also enable the smart plugin everywhere again.
+
+ -- Bernd Zeimetz <bzed@debian.org>  Sat, 02 Jan 2021 21:09:49 +0100
+
+collectd (5.12.0-3) unstable; urgency=medium
+
+  * [e0f135d] Actually fix the last upload.
+
+ -- Bernd Zeimetz <bzed@debian.org>  Sun, 20 Dec 2020 13:06:54 +0100
+
+collectd (5.12.0-2) unstable; urgency=medium
+
+  * [1497198] Smart is broken on some architectures.
+
+ -- Bernd Zeimetz <bzed@debian.org>  Sat, 19 Dec 2020 01:20:16 +0100
+
+collectd (5.12.0-1) unstable; urgency=medium
+
+  * [6003e65] Updating debian/watch file
+  * [5504abd] Update upstream source from tag 'upstream/5.12.0'
+    Update to upstream version '5.12.0'
+    with Debian dir 6ec21ce26138afb993ce3ef5011c207506c64066
+  * [63e30b4] Refreshing patches
+  * [fe7e50f] Disable netstat_udp on !freebsd
+
+ -- Bernd Zeimetz <bzed@debian.org>  Mon, 07 Dec 2020 21:35:49 +0100
+
+collectd (5.11.0-7) unstable; urgency=medium
+
+  * [d6feaf3] Fix arch list for protobuf-compiler-grpc.
+
+ -- Bernd Zeimetz <bzed@debian.org>  Tue, 28 Jul 2020 11:21:09 +0200
+
+collectd (5.11.0-6) unstable; urgency=medium
+
+  * [fc03f74] Disable grpc on non release architectures.
+    This should allow collectd to build on many more architectures again.
+
+ -- Bernd Zeimetz <bzed@debian.org>  Tue, 28 Jul 2020 10:45:54 +0200
+
+collectd (5.11.0-5) unstable; urgency=medium
+
+  * [a7f46fb] Merge branch 'lintian-fixes' into 'master'
+    Fix some issues reported by lintian
+    See merge request debian/pkg-collectd!4
+  * [f5943cf] Pass LDFLAGS and friends via environment.
+    configure ignores them otherwise
+  * [a5060c6] Remove --disable-lvm.
+    Plugin was removed
+
+ -- Bernd Zeimetz <bzed@debian.org>  Fri, 24 Jul 2020 23:37:47 +0200
+
+collectd (5.11.0-4) unstable; urgency=medium
+
+  [ Bernd Zeimetz ]
+  * [ee00bbb] Fix FTBFS with new libmicrohttp (Closes: #964593)
+
+  [ Antonio Russo ]
+  * [253f1e6] Fix FTBFS: disable gmond (ganglia)
+
+  [ Bernd Zeimetz ]
+  * [66162b0] remove old comments from d/control
+  * [83daeea] Refresh patch.
+    dpkg doen't handle it properly when the same file is changed more than
+    once in one patch.
+  * [1012b25] microhttpd-api-change: also fix write_prometheus
+  * [e1675c6] Fix return type
+  * [f16bc34] Link -latmomic on armel mips mipsel powerpc.
+    Workaround for grpc.
+  * [67aa668] pass CXXFLAGS to configure
+
+ -- Bernd Zeimetz <bzed@debian.org>  Fri, 24 Jul 2020 11:27:30 +0200
+
+collectd (5.11.0-3) unstable; urgency=medium
+
+  * [569deaf] grpc is now available on all release architectures.
+    Thanks to Adrian Bunk (Closes: #961369)
+
+ -- Bernd Zeimetz <bzed@debian.org>  Sat, 23 May 2020 21:08:22 +0200
 
 collectd (5.11.0-2) unstable; urgency=medium
 
@@ -2136,4 +2258,3 @@ collectd (3.9.4+debian-1) unstable; urgency=low
     AMD64.
 
  -- Sebastian Harl <sh@tokkee.org>  Fri,  7 Jul 2006 15:49:42 +0200
-

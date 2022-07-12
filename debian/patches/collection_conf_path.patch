@@ -10,6 +10,6 @@ Index: collectd/contrib/collection.cgi
  
 -our $Config = "/etc/collection.conf";
 +our $Config = "/etc/collectd/collection.conf";
- our $TypesDB = "/usr/share/collectd/types.db";
  our @DataDirs = ();
  our @DontShowTypes = ();
+ our $LibDir;
